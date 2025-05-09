@@ -1,0 +1,2 @@
+id,nombre,ubicacion,tipo_conector,potencia_kw,num_conectores,acceso_publico,horario_apertura,coste_por_kwh,operador
+3,Tesla Supercharger Bogotá,Autopista Norte # 153-81. Bogotá,Tesla,250.0,6,True,24/7,0.4,Tesla

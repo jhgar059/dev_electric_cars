@@ -1,0 +1,8 @@
+id,marca,modelo,anio,capacidad_bateria_kwh,autonomia_km,disponible
+1,Tesla,Model 3,2022,60.0,491.0,True
+2,Nissan,Leaf,2021,40.0,270.0,True
+3,Hyundai,Kona Electric,2023,64.0,484.0,False
+4,Chevrolet,Bolt EV,2022,66.0,417.0,True
+5,BMW,i3,2020,42.2,246.0,False
+6,ford,explorer,2019,39.8,375.0,False
+7,mazda,x3,2014,5.0,20.0,False

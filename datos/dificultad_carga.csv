@@ -1,0 +1,6 @@
+id,modelo,tipo_autonomia,autonomia_km,consumo_kwh_100km,tiempo_carga_horas,dificultad_carga,requiere_instalacion_domestica
+1,Tesla Model 3,mixta,500.0,15.0,6.0,baja,True
+2,Nissan Leaf,urbana,270.0,17.0,8.0,media,False
+4,Renault Zoe,urbana,300.0,14.0,9.0,alta,False
+5,Kia EV6,autopista,510.0,18.0,5.0,baja,False
+6,nissan,urbana,580.0,20.0,7.0,alta,True

@@ -1,0 +1,6 @@
+id,modelo,tipo_autonomia,autonomia_km,consumo_kwh_100km,tiempo_carga_horas,dificultad_carga,requiere_instalacion_domestica
+7,nissan,urbana,580.0,20.0,7.0,alta,True
+8,nissan,urbana,580.0,20.0,7.0,alta,True
+9,nissan,urbana,580.0,20.0,7.0,alta,True
+10,nissan,urbana,580.0,20.0,7.0,alta,True
+3,Chevrolet Bolt,mixta,420.0,16.0,7.0,media,True
