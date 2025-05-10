@@ -4,6 +4,17 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
+import os
+import psycopg2
+
+
+def obtener_conexion():
+    """Establece conexión con la base de datos en Render"""
+    DATABASE_URL = os.environ.get('DATABASE_URL', 'postgres://usuario:contraseña@host:puerto/nombre_db')
+
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
+
 # Cargar variables de entorno
 load_dotenv()
 

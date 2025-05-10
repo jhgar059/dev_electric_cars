@@ -1,3 +1,5 @@
+from sqlalchemy import Table, Column, Integer, String, Float, Boolean, MetaData
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 import models_sql as models
@@ -30,12 +32,27 @@ def update_auto(db: Session, auto_id: int, auto_data: Dict[str, Any]):
 def delete_auto(db: Session, auto_id: int):
     db_auto = db.query(models.AutoElectricoSQL).filter(models.AutoElectricoSQL.id == auto_id).first()
     if db_auto:
+        # Guardar en tabla de eliminados
+        db_eliminado = models.AutoEliminadoSQL(**{
+            "id": db_auto.id,
+            "marca": db_auto.marca,
+            "modelo": db_auto.modelo,
+            "anio": db_auto.anio,
+            "capacidad_bateria_kwh": db_auto.capacidad_bateria_kwh,
+            "autonomia_km": db_auto.autonomia_km,
+            "disponible": db_auto.disponible
+        })
+        db.add(db_eliminado)
+        # Eliminar de la tabla principal
         db.delete(db_auto)
         db.commit()
     return db_auto
 
 def filter_autos_by_marca(db: Session, marca: str):
     return db.query(models.AutoElectricoSQL).filter(models.AutoElectricoSQL.marca.ilike(f"%{marca}%")).all()
+
+def get_autos_eliminados(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.AutoEliminadoSQL).offset(skip).limit(limit).all()
 
 # --------------------- OPERACIONES CARGAS ---------------------
 
@@ -64,6 +81,19 @@ def update_carga(db: Session, carga_id: int, carga_data: Dict[str, Any]):
 def delete_carga(db: Session, carga_id: int):
     db_carga = db.query(models.CargaSQL).filter(models.CargaSQL.id == carga_id).first()
     if db_carga:
+        # Guardar en tabla de eliminados
+        db_eliminado = models.CargaEliminadaSQL(**{
+            "id": db_carga.id,
+            "modelo": db_carga.modelo,
+            "tipo_autonomia": db_carga.tipo_autonomia,
+            "autonomia_km": db_carga.autonomia_km,
+            "consumo_kwh_100km": db_carga.consumo_kwh_100km,
+            "tiempo_carga_horas": db_carga.tiempo_carga_horas,
+            "dificultad_carga": db_carga.dificultad_carga,
+            "requiere_instalacion_domestica": db_carga.requiere_instalacion_domestica
+        })
+        db.add(db_eliminado)
+        # Eliminar de la tabla principal
         db.delete(db_carga)
         db.commit()
     return db_carga
@@ -73,6 +103,9 @@ def filter_cargas_by_dificultad(db: Session, nivel: str):
 
 def filter_cargas_by_modelo(db: Session, modelo: str):
     return db.query(models.CargaSQL).filter(models.CargaSQL.modelo.ilike(f"%{modelo}%")).all()
+
+def get_cargas_eliminadas(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.CargaEliminadaSQL).offset(skip).limit(limit).all()
 
 # --------------------- OPERACIONES ESTACIONES ---------------------
 
@@ -101,6 +134,21 @@ def update_estacion(db: Session, estacion_id: int, estacion_data: Dict[str, Any]
 def delete_estacion(db: Session, estacion_id: int):
     db_estacion = db.query(models.EstacionSQL).filter(models.EstacionSQL.id == estacion_id).first()
     if db_estacion:
+        # Guardar en tabla de eliminados
+        db_eliminado = models.EstacionEliminadaSQL(**{
+            "id": db_estacion.id,
+            "nombre": db_estacion.nombre,
+            "ubicacion": db_estacion.ubicacion,
+            "tipo_conector": db_estacion.tipo_conector,
+            "potencia_kw": db_estacion.potencia_kw,
+            "num_conectores": db_estacion.num_conectores,
+            "acceso_publico": db_estacion.acceso_publico,
+            "horario_apertura": db_estacion.horario_apertura,
+            "coste_por_kwh": db_estacion.coste_por_kwh,
+            "operador": db_estacion.operador
+        })
+        db.add(db_eliminado)
+        # Eliminar de la tabla principal
         db.delete(db_estacion)
         db.commit()
     return db_estacion
@@ -110,3 +158,6 @@ def filter_estaciones_by_operador(db: Session, operador: str):
 
 def filter_estaciones_by_tipo_conector(db: Session, tipo_conector: str):
     return db.query(models.EstacionSQL).filter(models.EstacionSQL.tipo_conector.ilike(f"%{tipo_conector}%")).all()
+
+def get_estaciones_eliminadas(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.EstacionEliminadaSQL).offset(skip).limit(limit).all()

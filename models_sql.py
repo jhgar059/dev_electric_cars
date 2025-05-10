@@ -18,6 +18,17 @@ class AutoElectricoSQL(Base):
     autonomia_km = Column(Float, nullable=False)
     disponible = Column(Boolean, default=True)
 
+class AutoEliminadoSQL(Base):
+    __tablename__ = "autos_eliminados"
+
+    id = Column(Integer, primary_key=True, index=True)
+    marca = Column(String(30), nullable=False)
+    modelo = Column(String(30), nullable=False)
+    anio = Column(Integer, nullable=False)
+    capacidad_bateria_kwh = Column(Float, nullable=False)
+    autonomia_km = Column(Float, nullable=False)
+    disponible = Column(Boolean, default=True)
+
 class CargaSQL(Base):
     __tablename__ = "dificultad_carga"
 
@@ -30,8 +41,34 @@ class CargaSQL(Base):
     dificultad_carga = Column(String(5), nullable=False)
     requiere_instalacion_domestica = Column(Boolean, default=False)
 
+class CargaEliminadaSQL(Base):
+    __tablename__ = "dificultad_carga_eliminados"
+
+    id = Column(Integer, primary_key=True, index=True)
+    modelo = Column(String(50), nullable=False)
+    tipo_autonomia = Column(String(10), nullable=False)
+    autonomia_km = Column(Float, nullable=False)
+    consumo_kwh_100km = Column(Float, nullable=False)
+    tiempo_carga_horas = Column(Float, nullable=False)
+    dificultad_carga = Column(String(5), nullable=False)
+    requiere_instalacion_domestica = Column(Boolean, default=False)
+
 class EstacionSQL(Base):
     __tablename__ = "estaciones_carga"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(50), nullable=False)
+    ubicacion = Column(String(100), nullable=False)
+    tipo_conector = Column(String(10), nullable=False)
+    potencia_kw = Column(Float, nullable=False)
+    num_conectores = Column(Integer, nullable=False)
+    acceso_publico = Column(Boolean, default=True)
+    horario_apertura = Column(String(50), nullable=False)
+    coste_por_kwh = Column(Float, nullable=False)
+    operador = Column(String(50), nullable=False)
+
+class EstacionEliminadaSQL(Base):
+    __tablename__ = "estaciones_eliminadas"
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(50), nullable=False)
