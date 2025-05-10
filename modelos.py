@@ -67,3 +67,19 @@ class EstacionActualizada(BaseModel):
     horario_apertura: Optional[str] = Field(None, min_length=3, max_length=50)  # Cambiado de 5 a 3 caracteres mínimos
     coste_por_kwh: Optional[float] = Field(None, ge=0, le=1)
     operador: Optional[str] = Field(None, min_length=2, max_length=50)
+
+    from sqlalchemy import Column, Integer, String, Float, Boolean
+    from sqlalchemy.ext.declarative import declarative_base
+
+    Base = declarative_base()
+
+    class ElectricCar(Base):
+        __tablename__ = "electric_cars"
+
+        id = Column(Integer, primary_key=True, index=True)
+        marca = Column(String, index=True)
+        modelo = Column(String)
+        año = Column(Integer)
+        capacidad_bateria_kwh = Column(Float)
+        autonomia_km = Column(Float)
+        disponible = Column(Boolean, default=True)
