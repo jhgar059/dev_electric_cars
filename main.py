@@ -4,25 +4,6 @@ from typing import List
 import os
 import logging
 import sys
-from fastapi import FastAPI, Depends
-from sqlalchemy.orm import Session
-from database import SessionLocal
-from modelos import ElectricCar
-
-app = FastAPI()
-
-# Dependencia para obtener la sesión de la base de datos
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@app.get("/cars")
-def leer_autos(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    autos = db.query(ElectricCar).offset(skip).limit(limit).all()
-    return autos
 
 # Configuración de logging
 logging.basicConfig(

@@ -41,7 +41,6 @@ class CargaActualizada(BaseModel):
 
 # ------------------ Modelos para Estaciones de Carga ------------------
 
-# modelos.py (cambios en la clase EstacionBase)
 class EstacionBase(BaseModel):
     nombre: str = Field(..., min_length=2, max_length=50)
     ubicacion: str = Field(..., min_length=5, max_length=100)
@@ -49,14 +48,13 @@ class EstacionBase(BaseModel):
     potencia_kw: float = Field(..., ge=3.7, le=350)
     num_conectores: int = Field(..., ge=1, le=20)
     acceso_publico: bool = Field(...)
-    horario_apertura: str = Field(..., min_length=3, max_length=50)  # Cambiado de 5 a 3 caracteres mínimos
+    horario_apertura: str = Field(..., min_length=3, max_length=50)  # Modificado para permitir valores como "24/7"
     coste_por_kwh: float = Field(..., ge=0, le=1)
     operador: str = Field(..., min_length=2, max_length=50)
 
 class EstacionConID(EstacionBase):
     id: int
 
-# modelos.py (cambios en la clase EstacionActualizada)
 class EstacionActualizada(BaseModel):
     nombre: Optional[str] = Field(None, min_length=2, max_length=50)
     ubicacion: Optional[str] = Field(None, min_length=5, max_length=100)
@@ -64,22 +62,6 @@ class EstacionActualizada(BaseModel):
     potencia_kw: Optional[float] = Field(None, ge=3.7, le=350)
     num_conectores: Optional[int] = Field(None, ge=1, le=20)
     acceso_publico: Optional[bool] = Field(None)
-    horario_apertura: Optional[str] = Field(None, min_length=3, max_length=50)  # Cambiado de 5 a 3 caracteres mínimos
+    horario_apertura: Optional[str] = Field(None, min_length=3, max_length=50)  # Modificado para permitir valores como "24/7"
     coste_por_kwh: Optional[float] = Field(None, ge=0, le=1)
     operador: Optional[str] = Field(None, min_length=2, max_length=50)
-
-    from sqlalchemy import Column, Integer, String, Float, Boolean
-    from sqlalchemy.ext.declarative import declarative_base
-
-    Base = declarative_base()
-
-    class ElectricCar(Base):
-        __tablename__ = "electric_cars"
-
-        id = Column(Integer, primary_key=True, index=True)
-        marca = Column(String, index=True)
-        modelo = Column(String)
-        año = Column(Integer)
-        capacidad_bateria_kwh = Column(Float)
-        autonomia_km = Column(Float)
-        disponible = Column(Boolean, default=True)
