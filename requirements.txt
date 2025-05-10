@@ -6,3 +6,4 @@ psycopg2-binary>=2.9.9
 python-dotenv>=1.0.0
 databases>=0.8.0
 asyncpg>=0.29.0
+gunicorn
