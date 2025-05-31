@@ -25,6 +25,8 @@ import models_sql
 import crud
 
 # Crear las tablas en la base de datos
+# Esta línea asegura que las tablas se creen al iniciar la aplicación si no existen.
+# Es complementaria a db_init.py, útil en entornos donde db_init.py no se ejecuta explícitamente.
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Unificada de Autos Eléctricos")
@@ -245,6 +247,42 @@ def eliminar_estacion(estacion_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error al eliminar estación {estacion_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Error al eliminar: {str(e)}")
+
+# --------------------- SECCIÓN ELEMENTOS ELIMINADOS ---------------------
+
+@app.get("/eliminados/autos", response_model=List[AutoElectricoConID])
+def obtener_autos_eliminados(db: Session = Depends(get_db)):
+    """
+    Obtiene todos los autos eléctricos que han sido eliminados.
+    """
+    try:
+        return crud.get_autos_eliminados(db)
+    except Exception as e:
+        logger.error(f"Error al leer autos eliminados: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+
+@app.get("/eliminados/cargas", response_model=List[CargaConID])
+def obtener_cargas_eliminadas(db: Session = Depends(get_db)):
+    """
+    Obtiene todos los registros de dificultad de carga que han sido eliminados.
+    """
+    try:
+        return crud.get_cargas_eliminadas(db)
+    except Exception as e:
+        logger.error(f"Error al leer cargas eliminadas: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+
+@app.get("/eliminados/estaciones", response_model=List[EstacionConID])
+def obtener_estaciones_eliminadas(db: Session = Depends(get_db)):
+    """
+    Obtiene todas las estaciones de carga que han sido eliminadas.
+    """
+    try:
+        return crud.get_estaciones_eliminadas(db)
+    except Exception as e:
+        logger.error(f"Error al leer estaciones eliminadas: {e}")
+        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+
 
 if __name__ == "__main__":
     import uvicorn

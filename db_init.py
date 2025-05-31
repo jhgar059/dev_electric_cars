@@ -34,8 +34,10 @@ def verificar_conexion():
 
 
 def crear_tablas():
-    """Crea las tablas en la base de datos"""
+    """Crea las tablas en la base de datos, incluyendo las de 'eliminados'."""
     try:
+        # Base.metadata.create_all creará todas las tablas definidas en los modelos
+        # que heredan de Base, incluyendo AutoEliminadoSQL, CargaEliminadaSQL, EstacionEliminadaSQL.
         Base.metadata.create_all(bind=engine)
         logger.info("✅ Tablas creadas exitosamente")
 
@@ -51,7 +53,7 @@ def crear_tablas():
 
 
 def insertar_datos_prueba():
-    """Inserta datos de prueba en la base de datos"""
+    """Inserta datos de prueba en la base de datos principal."""
     try:
         db = SessionLocal()
 
@@ -62,7 +64,7 @@ def insertar_datos_prueba():
 
         if autos_count > 0 or cargas_count > 0 or estaciones_count > 0:
             logger.info(
-                f"📊 La base de datos ya contiene datos: {autos_count} autos, {cargas_count} cargas, {estaciones_count} estaciones")
+                f"📊 La base de datos ya contiene datos: {autos_count} autos, {cargas_count} cargas, {estaciones_count} estaciones. Saltando inserción de datos de prueba.")
             return True
 
         # Autos de prueba
@@ -212,6 +214,23 @@ def listar_datos():
         for estacion in estaciones:
             logger.info(f"  ID: {estacion.id}, Nombre: {estacion.nombre}, Operador: {estacion.operador}")
 
+        # También listamos los eliminados para verificar
+        autos_eliminados = db.query(models_sql.AutoEliminadoSQL).all()
+        logger.info("📋 AUTOS ELÉCTRICOS ELIMINADOS:")
+        for auto_e in autos_eliminados:
+            logger.info(f"  ID: {auto_e.id}, Marca: {auto_e.marca}, Modelo: {auto_e.modelo}")
+
+        cargas_eliminadas = db.query(models_sql.CargaEliminadaSQL).all()
+        logger.info("📋 CARGAS ELIMINADAS:")
+        for carga_e in cargas_eliminadas:
+            logger.info(f"  ID: {carga_e.id}, Modelo: {carga_e.modelo}, Dificultad: {carga_e.dificultad_carga}")
+
+        estaciones_eliminadas = db.query(models_sql.EstacionEliminadaSQL).all()
+        logger.info("📋 ESTACIONES ELIMINADAS:")
+        for estacion_e in estaciones_eliminadas:
+            logger.info(f"  ID: {estacion_e.id}, Nombre: {estacion_e.nombre}, Operador: {estacion_e.operador}")
+
+
         db.close()
         return True
     except Exception as e:
@@ -233,7 +252,7 @@ def main():
         logger.error("❌ Error al crear tablas. Abortando.")
         return
 
-    # Insertar datos de prueba
+    # Insertar datos de prueba (solo si la DB está vacía)
     if not insertar_datos_prueba():
         logger.error("❌ Error al insertar datos de prueba.")
 

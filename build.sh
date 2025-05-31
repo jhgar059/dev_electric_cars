@@ -13,3 +13,7 @@ mkdir -p eliminados
 # Inicializar la base de datos automáticamente
 echo "Inicializando la base de datos..."
 python db_init.py
+
+# Migrar datos CSV existentes (incluyendo los de la carpeta 'eliminados')
+echo "Migrando datos CSV a la base de datos..."
+python migrate_csv_to_db.py

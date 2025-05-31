@@ -29,7 +29,10 @@ logger.info(f"Conectando a la base de datos...")
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 
-# Definir tablas adicionales para los elementos eliminados
+# Definir tablas adicionales para los elementos eliminados (si no están ya en models_sql.py y se cargan automáticamente)
+# Si ya están en models_sql.py y Base.metadata.create_all() las crea, esta parte es redundante para la creación,
+# pero es necesaria para referenciarlas en la migración si no se usa autoload_with en las tablas eliminadas.
+# En tu caso, ya las tienes en models_sql.py, así que esto es más una referencia para la migración.
 deleted_auto = Table(
     "autos_eliminados",
     metadata,
@@ -70,7 +73,7 @@ deleted_estacion = Table(
     Column("operador", String(50), nullable=False)
 )
 
-# Crear las tablas si no existen
+# Crear las tablas si no existen (esto es redundante si db_init.py ya lo hace, pero no hace daño)
 logger.info("Creando tablas para elementos eliminados si no existen...")
 metadata.create_all(engine)
 
@@ -98,8 +101,12 @@ def migrar_csv_a_db(archivo_csv, tabla, conversion_tipos):
                     if not result:
                         # Si no existe, insertar
                         conn.execute(tabla.insert().values(**datos))
+                conn.commit() # Commit after all inserts for efficiency
         logger.info(f"Migración de {archivo_csv} completada con éxito")
         return True
+    except FileNotFoundError:
+        logger.warning(f"Archivo CSV no encontrado: {archivo_csv}. Saltando migración para este archivo.")
+        return False
     except Exception as e:
         logger.error(f"Error al migrar {archivo_csv}: {str(e)}")
         return False
@@ -157,19 +164,20 @@ def main():
     logger.info(f"Tablas existentes en la base de datos: {existentes}")
 
     # Tablas principales (deben ya existir según tu código)
+    # Usamos autoload_with para cargar la definición de la tabla desde la DB si ya existe
     auto_table = Table("autos_electricos", metadata, autoload_with=engine)
     carga_table = Table("dificultad_carga", metadata, autoload_with=engine)
     estacion_table = Table("estaciones_carga", metadata, autoload_with=engine)
 
-    # Migrar datos de autos
+    # Migrar datos de autos (principales y eliminados)
     migrar_csv_a_db("datos/autos_electricos.csv", auto_table, conversion_tipo_auto)
     migrar_csv_a_db("eliminados/autos_eliminados.csv", deleted_auto, conversion_tipo_auto)
 
-    # Migrar datos de cargas
+    # Migrar datos de cargas (principales y eliminados)
     migrar_csv_a_db("datos/dificultad_carga.csv", carga_table, conversion_tipo_carga)
     migrar_csv_a_db("eliminados/dificultad_carga_eliminados.csv", deleted_carga, conversion_tipo_carga)
 
-    # Migrar datos de estaciones
+    # Migrar datos de estaciones (principales y eliminados)
     migrar_csv_a_db("datos/estaciones_carga.csv", estacion_table, conversion_tipo_estacion)
     migrar_csv_a_db("eliminados/estaciones_eliminadas.csv", deleted_estacion, conversion_tipo_estacion)
 
