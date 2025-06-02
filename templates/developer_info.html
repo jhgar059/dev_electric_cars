@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Acerca del Desarrollador - Electric Cars Database{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="section-title">Acerca del Desarrollador</h1>
+
+    <div class="info-block text-center fade-in">
+        <img src="https://via.placeholder.com/150/2563eb/FFFFFF?text=Tu+Foto" alt="Foto del Desarrollador" class="rounded-circle mb-4" style="border: 4px solid var(--primary-color);">
+        <h2 class="h3 text-primary mb-3">Tu Nombre Completo</h2>
+        <p class="lead text-muted">Ingeniero de Software | Desarrollador Full-stack | Entusiasta de la Movilidad Eléctrica</p>
+
+        <hr class="my-4">
+
+        <h3 class="h4 text-secondary mb-3">Contacto</h3>
+        <ul class="list-unstyled mb-4">
+            <li><i class="fas fa-envelope me-2 text-primary"></i> <a href="mailto:tu.email@example.com" class="text-decoration-none text-dark">tu.email@example.com</a></li>
+            <li><i class="fas fa-phone me-2 text-primary"></i> (123) 456-7890</li>
+            <li><i class="fas fa-map-marker-alt me-2 text-primary"></i> Fusagasugá, Cundinamarca, Colombia</li>
+        </ul>
+
+        <h3 class="h4 text-secondary mb-3">Habilidades Clave</h3>
+        <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+            <span class="badge bg-primary fs-6">Python</span>
+            <span class="badge bg-primary fs-6">FastAPI</span>
+            <span class="badge bg-primary fs-6">SQLAlchemy</span>
+            <span class="badge bg-primary fs-6">PostgreSQL</span>
+            <span class="badge bg-info fs-6">HTML5</span>
+            <span class="badge bg-info fs-6">CSS3 (Bootstrap)</span>
+            <span class="badge bg-info fs-6">JavaScript</span>
+            <span class="badge bg-dark fs-6">Git/GitHub</span>
+            <span class="badge bg-success fs-6">Despliegue en Render</span>
+        </div>
+
+        <h3 class="h4 text-secondary mb-3">Acerca de Mí</h3>
+        <p class="text-start px-md-5">
+            Soy un ingeniero de software apasionado por construir soluciones robustas y escalables. Con experiencia en el desarrollo de APIs RESTful y la gestión de bases de datos, siempre busco aplicar las mejores prácticas para crear aplicaciones eficientes y sostenibles. Mi interés en la movilidad eléctrica me llevó a desarrollar este proyecto, combinando mis habilidades técnicas con mi compromiso con el medio ambiente.
+        </p>
+        <p class="text-start px-md-5">
+            Este proyecto es un testimonio de mi capacidad para integrar diversas tecnologías y cumplir con los requisitos de un proyecto de software completo, desde la concepción del diseño hasta el despliegue en un entorno de producción.
+        </p>
+
+        <div class="mt-4">
+            <a href="https://github.com/tu_usuario_github" target="_blank" class="btn btn-dark btn-lg me-2">
+                <i class="fab fa-github me-2"></i>Ver en GitHub
+            </a>
+            <a href="https://www.linkedin.com/in/tu_perfil_linkedin" target="_blank" class="btn btn-info btn-lg">
+                <i class="fab fa-linkedin me-2"></i>Perfil de LinkedIn
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

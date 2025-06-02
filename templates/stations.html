@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Estaciones de Carga - Electric Cars Database{% endblock %}
+
+{% block content %}/div>
+<div class="container my-5">
+    <h1 class="section-title">Gestión de Estaciones de Carga</h1>
+
+    <div class="info-block mb-5">
+        <h2 class="h4 text-primary mb-3"><i class="fas fa-plus-circle me-2"></i>Registrar Nueva Estación / Actualizar Existente</h2>
+        <form id="estacionForm" onsubmit="submitEstacionForm(event)">
+            <div class="mb-3">
+                <label for="estacionId" class="form-label">ID de la Estación (se autogenera al crear, para actualizar se carga automáticamente)</label>
+                <input type="text" class="form-control" id="estacionId" name="id" placeholder="Automático para nuevo, cargado para actualizar" readonly>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="nombre" class="form-label">Nombre de la Estación</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="ubicacion" class="form-label">Ubicación</label>
+                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="tipo_conector" class="form-label">Tipo de Conector</label>
+                    <select class="form-select" id="tipo_conector" name="tipo_conector" required>
+                        <option value="">Seleccione...</option>
+                        <option value="CCS">CCS</option>
+                        <option value="CHAdeMO">CHAdeMO</option>
+                        <option value="Tipo 2">Tipo 2</option>
+                        <option value="Schuko">Schuko</option>
+                        <option value="Tesla">Tesla</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="potencia_kw" class="form-label">Potencia (kW)</label>
+                    <input type="number" step="0.1" class="form-control" id="potencia_kw" name="potencia_kw" min="3.7" max="350" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="num_conectores" class="form-label">Número de Conectores</label>
+                    <input type="number" class="form-control" id="num_conectores" name="num_conectores" min="1" max="20" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3 form-check d-flex align-items-center">
+                    <input type="checkbox" class="form-check-input mt-0" id="acceso_publico" name="acceso_publico">
+                    <label class="form-check-label ms-2" for="acceso_publico">Acceso Público</label>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="horario_apertura" class="form-label">Horario de Apertura</label>
+                    <input type="text" class="form-control" id="horario_apertura" name="horario_apertura" placeholder="Ej: 24/7, 9am-5pm" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="coste_por_kwh" class="form-label">Coste por kWh (€)</label>
+                    <input type="number" step="0.01" class="form-control" id="coste_por_kwh" name="coste_por_kwh" min="0" max="1" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="operador" class="form-label">Operador</label>
+                    <input type="text" class="form-control" id="operador" name="operador" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="url_imagen_estacion" class="form-label">URL de Imagen (Opcional)</label>
+                <input type="text" class="form-control" id="url_imagen_estacion" name="url_imagen" placeholder="Ej: /static/images/mi_estacion.jpg">
+            </div>
+            <div class="mb-4">
+                <label for="imageUploadEstacion" class="form-label">Subir Imagen (Opcional)</label>
+                <input type="file" class="form-control" id="imageUploadEstacion" accept="image/*" onchange="uploadAndSetImageUrl(event, 'url_imagen_estacion')">
+                <small class="form-text text-muted">Selecciona un archivo de imagen para subirlo.</small>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Guardar Estación</button>
+                <button type="button" class="btn btn-secondary" onclick="clearEstacionForm()"><i class="fas fa-redo me-2"></i>Limpiar Formulario</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="info-block">
+        <h2 class="h4 text-success mb-3"><i class="fas fa-list me-2"></i>Listado de Estaciones de Carga</h2>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Ubicación</th>
+                        <th>Tipo Conector</th>
+                        <th>Potencia (kW)</th>
+                        <th>Num. Conectores</th>
+                        <th>Acceso Público</th>
+                        <th>Horario</th>
+                        <th>Coste/kWh</th>
+                        <th>Operador</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="estacionesTableBody">
+                    </tbody>
+            </table>
+        </div>
+        <div id="noEstacionesMessage" class="text-center text-muted py-4" style="display: none;">
+            No hay estaciones de carga registradas.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function uploadAndSetImageUrl(event, inputId) {
+        const file = event.target.files[0];
+        if (!file) {
+            document.getElementById(inputId).value = '';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/upload_image/', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error al subir la imagen.');
+            }
+
+            const data = await response.json();
+            document.getElementById(inputId).value = data.url; // Establece la URL devuelta por el backend
+            alert('Imagen subida exitosamente!');
+        } catch (error) {
+            console.error('Error al subir imagen:', error);
+            alert('Error al subir imagen: ' + error.message);
+            document.getElementById(inputId).value = ''; // Limpiar el campo si falla
+        }
+    }
+
+    async function loadEstaciones() {
+        try {
+            const response = await fetch('/estaciones/');
+            if (!response.ok) {
+                throw new Error('No se pudieron cargar las estaciones de carga.');
+            }
+            const estaciones = await response.json();
+            const tableBody = document.getElementById('estacionesTableBody');
+            tableBody.innerHTML = ''; // Limpiar tabla
+
+            if (estaciones.length === 0) {
+                document.getElementById('noEstacionesMessage').style.display = 'block';
+            } else {
+                document.getElementById('noEstacionesMessage').style.display = 'none';
+                estaciones.forEach(estacion => {
+                    const row = `
+                        <tr>
+                            <td>${estacion.id}</td>
+                            <td>
+                                ${estacion.url_imagen ? `<img src="${estacion.url_imagen}" alt="Imagen de ${estacion.nombre}" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">` : '<i class="fas fa-image text-muted" style="font-size: 2rem;"></i>'}
+                            </td>
+                            <td>${estacion.nombre}</td>
+                            <td>${estacion.ubicacion}</td>
+                            <td>${estacion.tipo_conector}</td>
+                            <td>${estacion.potencia_kw}</td>
+                            <td>${estacion.num_conectores}</td>
+                            <td>
+                                ${estacion.acceso_publico ? '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Sí</span>' : '<span class="badge bg-danger"><i class="fas fa-times-circle"></i> No</span>'}
+                            </td>
+                            <td>${estacion.horario_apertura}</td>
+                            <td>${estacion.coste_por_kwh}</td>
+                            <td>${estacion.operador}</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-2" onclick="editEstacion(${estacion.id})"><i class="fas fa-edit"></i> Editar</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteEstacion(${estacion.id})"><i class="fas fa-trash"></i> Eliminar</button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar estaciones:', error);
+            document.getElementById('estacionesTableBody').innerHTML = `<tr><td colspan="12" class="text-center text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar las estaciones: ${error.message}</td></tr>`;
+            document.getElementById('noEstacionesMessage').style.display = 'none';
+        }
+    }
+
+    async function submitEstacionForm(event) {
+        event.preventDefault();
+        const estacionId = document.getElementById('estacionId').value;
+        const form = document.getElementById('estacionForm');
+        const formData = new FormData(form);
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+            if (key === 'id' && !estacionId) continue; // Excluir ID si es creación
+            if (key === 'acceso_publico') {
+                data[key] = value === 'on';
+            } else if (key === 'potencia_kw' || key === 'num_conectores' || key === 'coste_por_kwh') {
+                data[key] = parseFloat(value);
+            } else {
+                data[key] = value;
+            }
+        }
+
+        const imageUrlInput = document.getElementById('url_imagen_estacion').value;
+        if (imageUrlInput) {
+            data['url_imagen'] = imageUrlInput;
+        } else {
+             data['url_imagen'] = null;
+        }
+
+        let url = '/estaciones/';
+        let method = 'POST';
+
+        if (estacionId) { // Si hay un ID, es una actualización
+            url = `/estaciones/${estacionId}`;
+            method = 'PUT';
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error en la operación.');
+            }
+
+            alert(`Estación ${estacionId ? 'actualizada' : 'creada'} exitosamente!`);
+            clearEstacionForm();
+            loadEstaciones(); // Recargar la tabla
+        } catch (error) {
+            console.error('Error al guardar estación:', error);
+            alert('Error al guardar estación: ' + error.message);
+        }
+    }
+
+    async function editEstacion(estacionId) {
+        try {
+            const response = await fetch(`/estaciones/${estacionId}`);
+            if (!response.ok) {
+                throw new Error('No se pudo cargar la estación para edición.');
+            }
+            const estacion = await response.json();
+
+            document.getElementById('estacionId').value = estacion.id;
+            document.getElementById('nombre').value = estacion.nombre;
+            document.getElementById('ubicacion').value = estacion.ubicacion;
+            document.getElementById('tipo_conector').value = estacion.tipo_conector;
+            document.getElementById('potencia_kw').value = estacion.potencia_kw;
+            document.getElementById('num_conectores').value = estacion.num_conectores;
+            document.getElementById('acceso_publico').checked = estacion.acceso_publico;
+            document.getElementById('horario_apertura').value = estacion.horario_apertura;
+            document.getElementById('coste_por_kwh').value = estacion.coste_por_kwh;
+            document.getElementById('operador').value = estacion.operador;
+            document.getElementById('url_imagen_estacion').value = estacion.url_imagen || '';
+        } catch (error) {
+            console.error('Error al editar estación:', error);
+            alert('Error al cargar datos de la estación para edición: ' + error.message);
+        }
+    }
+
+    async function deleteEstacion(estacionId) {
+        if (!confirm('¿Está seguro de que desea eliminar esta estación? Esta acción lo moverá al historial de eliminados.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/estaciones/${estacionId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error al eliminar la estación.');
+            }
+
+            alert('Estación eliminada exitosamente y movida al historial!');
+            loadEstaciones();
+        } catch (error) {
+            console.error('Error al eliminar estación:', error);
+            alert('Error al eliminar estación: ' + error.message);
+        }
+    }
+
+    function clearEstacionForm() {
+        document.getElementById('estacionForm').reset();
+        document.getElementById('estacionId').value = '';
+        document.getElementById('url_imagen_estacion').value = '';
+    }
+
+    // Cargar estaciones al cargar la página inicialmente
+    document.addEventListener('DOMContentLoaded', loadEstaciones);
+</script>
+{% endblock %}

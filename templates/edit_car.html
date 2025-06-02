@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Coche - Electric Cars Database{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4 section-title">Editar Coche</h1>
+
+    <div class="card p-4">
+        <form action="/cars/update/{{ car.id }}" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="marca" class="form-label">Marca:</label>
+                <input type="text" class="form-control" id="marca" name="marca" value="{{ car.marca }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="modelo" class="form-label">Modelo:</label>
+                <input type="text" class="form-control" id="modelo" name="modelo" value="{{ car.modelo }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="autonomia_km" class="form-label">Autonomía (km):</label>
+                <input type="number" class="form-control" id="autonomia_km" name="autonomia_km" value="{{ car.autonomia_km }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="capacidad_bateria_kwh" class="form-label">Capacidad Batería (kWh):</label>
+                <input type="number" step="0.1" class="form-control" id="capacidad_bateria_kwh" name="capacidad_bateria_kwh" value="{{ car.capacidad_bateria_kwh }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="anio_fabricacion" class="form-label">Año de Fabricación:</label>
+                <input type="number" class="form-control" id="anio_fabricacion" name="anio_fabricacion" value="{{ car.anio_fabricacion }}" min="1900" max="{{ 'now'|date('Y') + 5 }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="imagen_file" class="form-label">Nueva Imagen del Coche:</label>
+                <input type="file" class="form-control" id="imagen_file" name="imagen_file" accept="image/*" onchange="previewImage(event, 'imagePreviewEdit')">
+                <small class="form-text text-muted">Deja en blanco para mantener la imagen actual. Selecciona un archivo para cambiarla.</small>
+                <img id="imagePreviewEdit" src="#" alt="Vista previa de la nueva imagen" style="max-width: 200px; max-height: 200px; margin-top: 10px; display: none;">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Imagen Actual:</label>
+                {% if car.imagen_url %}
+                    <img id="currentImageDisplay" src="{{ car.imagen_url }}" alt="Imagen actual del coche" style="max-width: 200px; max-height: 200px; margin-top: 10px; border-radius: 4px;">
+                {% else %}
+                    <p class="text-muted">No hay imagen actual registrada.</p>
+                {% endif %}
+            </div>
+
+            <a href="{{ url_for('cars_page') }}" class="btn btn-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Actualizar Coche</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

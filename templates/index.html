@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Electric Cars Database{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-bolt electric-icon me-3"></i>
+                    Bienvenido a Electric Cars Database
+                </h1>
+                <p class="lead mb-4">
+                    Tu fuente completa de información sobre vehículos eléctricos.
+                    Explora, compara y descubre el futuro de la movilidad sostenible.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('cars_page') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-car me-2"></i>Ver Carros
+                    </a>
+                    <a href="{{ url_for('statistics_page') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-chart-bar me-2"></i>Estadísticas
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="electric-car-animation">
+                    <i class="fas fa-car-side" style="font-size: 8rem; color: rgba(255,255,255,0.8);"></i>
+                    <i class="fas fa-charging-station" style="font-size: 6rem; color: rgba(255,255,255,0.6); position: absolute; top: 50%; left: 10%; transform: translateY(-50%);"></i>
+                    <i class="fas fa-bolt" style="font-size: 3rem; color: rgba(255,255,255,0.9); position: absolute; top: 20%; right: 20%; animation: pulse 2s infinite;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-section py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="section-title mb-4">¿Qué Ofrecemos?</h2>
+                <p class="lead text-muted">
+                    Electric Cars Database es tu plataforma centralizada para explorar un mundo de datos sobre la movilidad eléctrica. Aquí encontrarás:
+                </p>
+                <div class="row mt-4">
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm border-0 animate-on-scroll">
+                            <div class="card-body text-center">
+                                <i class="fas fa-car-battery fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Detalles de Vehículos</h5>
+                                <p class="card-text">Información exhaustiva sobre marcas, modelos, baterías y autonomía de autos eléctricos.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm border-0 animate-on-scroll" data-animation-delay="200">
+                            <div class="card-body text-center">
+                                <i class="fas fa-charging-station fa-3x text-success mb-3"></i>
+                                <h5 class="card-title">Estaciones de Carga</h5>
+                                <p class="card-text">Datos sobre ubicaciones, tipos de conector, potencia y disponibilidad de estaciones.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm border-0 animate-on-scroll" data-animation-delay="400">
+                            <div class="card-body text-center">
+                                <i class="fas fa-tachometer-alt fa-3x text-info mb-3"></i>
+                                <h5 class="card-title">Estadísticas y Análisis</h5>
+                                <p class="card-text">Gráficos y métricas clave para entender las tendencias del mercado de EVs.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="stats-section py-5">
+    <div class="container">
+        <h2 class="section-title mb-5 text-center">Una Mirada Rápida a Nuestros Datos</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4 mb-4 animate-on-scroll">
+                <div class="info-block h-100 text-center">
+                    <h3 class="h4 text-primary mb-3"><i class="fas fa-road me-2"></i>Autonomía Promedio de Autos</h3>
+                    <div class="text-center py-4">
+                        <p class="display-3 fw-bold text-dark" id="averageAutonomy">{{ average_autonomy | round(0) if average_autonomy is not none else 'N/A' }}</p>
+                        <p class="lead text-muted">km (todos los modelos)</p>
+                    </div>
+                    <p class="text-muted mt-3">La autonomía promedio de todos los autos eléctricos registrados en nuestra base de datos.</p>
+                </div>
+            </div>
+            </div>
+    </div>
+</section>
+
+<section class="project-info-section py-5 bg-light">
+    <div class="container">
+        <h2 class="section-title mb-4 text-center">Acerca del Proyecto "Electric Cars Database"</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="info-block p-4 shadow-sm rounded">
+                    <p class="lead text-muted">
+                        El proyecto "Electric Cars Database" es una iniciativa para crear una plataforma web integral dedicada a la recopilación y gestión de información sobre vehículos eléctricos (EVs) y su infraestructura de carga. Nace de la creciente necesidad de un recurso centralizado que facilite el acceso a datos cruciales para entusiastas, compradores potenciales y profesionales de la industria.
+                    </p>
+                    <p class="text-muted">
+                        Nuestro objetivo es simplificar la búsqueda y comprensión de las especificaciones de los vehículos, detalles de las estaciones de carga y el análisis de la experiencia de carga. Implementamos un sistema robusto que permite:
+                    </p>
+                    <ul class="list-unstyled text-muted ps-3">
+                        <li class="mb-2"><i class="fas fa-car-side me-2 text-primary"></i> <strong>Gestión de Autos Eléctricos:</strong> Registrar, consultar, actualizar y eliminar información detallada de diversos modelos de EVs, incluyendo marca, modelo, año, capacidad de batería y autonomía.</li>
+                        <li class="mb-2"><i class="fas fa-charging-station me-2 text-success"></i> <strong>Administración de Estaciones de Carga:</strong> Mantener un inventario de estaciones, con datos como ubicación, tipo de conector, potencia y disponibilidad.</li>
+                        <li class="mb-2"><i class="fas fa-bolt me-2 text-warning"></i> <strong>Análisis de Dificultad de Carga:</strong> Evaluar y registrar la facilidad o complejidad de la carga para distintos modelos, incluyendo tiempo de carga y requisitos de instalación.</li>
+                        <li class="mb-2"><i class="fas fa-chart-line me-2 text-info"></i> <strong>Visualización de Datos Clave:</strong> Ofrecer una sección dedicada a estadísticas y gráficos interactivos que presenten tendencias del mercado, distribuciones y otros datos relevantes de manera visual.</li>
+                        <li class="mb-2"><i class="fas fa-history me-2 text-secondary"></i> <strong>Historial de Registros Eliminados:</strong> Mantener un registro de elementos eliminados para auditoría y referencia, garantizando la integridad de los datos.</li>
+                    </ul>
+                    <p class="text-muted mb-0">
+                        Este proyecto es una demostración práctica de desarrollo de software moderno, utilizando FastAPI para la API backend, SQLAlchemy para la gestión de la base de datos y Jinja2 junto con Bootstrap para el frontend. Es una herramienta valiosa para cualquiera interesado en el emocionante mundo de la movilidad eléctrica.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // No se necesitan scripts de Chart.js aquí, ya que las gráficas se movieron a statistics_page.html
+    // La autonomía promedio ya viene del servidor con Jinja2
+</script>
+{% endblock %}

@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Dificultad de Carga - Electric Cars Database{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="section-title">Gestión de Dificultad de Carga</h1>
+
+    <div class="info-block mb-5">
+        <h2 class="h4 text-primary mb-3"><i class="fas fa-plus-circle me-2"></i>Registrar Nuevo Registro de Carga / Actualizar Existente</h2>
+        <form id="cargaForm" onsubmit="submitCargaForm(event)">
+            <div class="mb-3">
+                <label for="cargaId" class="form-label">ID del Registro (se autogenera al crear, para actualizar se carga automáticamente)</label>
+                <input type="text" class="form-control" id="cargaId" name="id" placeholder="Automático para nuevo, cargado para actualizar" readonly>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="cargaModelo" class="form-label">Modelo de Auto</label>
+                    <input type="text" class="form-control" id="cargaModelo" name="modelo" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="tipo_autonomia" class="form-label">Tipo de Autonomía</label>
+                    <select class="form-select" id="tipo_autonomia" name="tipo_autonomia" required>
+                        <option value="">Seleccione...</option>
+                        <option value="urbana">Urbana</option>
+                        <option value="mixta">Mixta</option>
+                        <option value="autopista">Autopista</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="autonomia_km_carga" class="form-label">Autonomía (km)</label>
+                    <input type="number" step="0.1" class="form-control" id="autonomia_km_carga" name="autonomia_km" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="consumo_kwh_100km" class="form-label">Consumo (kWh/100km)</label>
+                    <input type="number" step="0.1" class="form-control" id="consumo_kwh_100km" name="consumo_kwh_100km" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="tiempo_carga_horas" class="form-label">Tiempo Carga (horas)</label>
+                    <input type="number" step="0.1" class="form-control" id="tiempo_carga_horas" name="tiempo_carga_horas" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="dificultad_carga" class="form-label">Dificultad de Carga</label>
+                    <select class="form-select" id="dificultad_carga" name="dificultad_carga" required>
+                        <option value="">Seleccione...</option>
+                        <option value="baja">Baja</option>
+                        <option value="media">Media</option>
+                        <option value="alta">Alta</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3 form-check d-flex align-items-center">
+                    <input type="checkbox" class="form-check-input mt-0" id="requiere_instalacion_domestica" name="requiere_instalacion_domestica">
+                    <label class="form-check-label ms-2" for="requiere_instalacion_domestica">Requiere Instalación Doméstica</label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="url_imagen_carga" class="form-label">URL de Imagen (Opcional)</label>
+                <input type="text" class="form-control" id="url_imagen_carga" name="url_imagen" placeholder="Ej: /static/images/mi_carga.jpg">
+            </div>
+            <div class="mb-4">
+                <label for="imageUploadCarga" class="form-label">Subir Imagen (Opcional)</label>
+                <input type="file" class="form-control" id="imageUploadCarga" accept="image/*" onchange="uploadAndSetImageUrl(event, 'url_imagen_carga')">
+                <small class="form-text text-muted">Selecciona un archivo de imagen para subirlo.</small>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Guardar Registro</button>
+                <button type="button" class="btn btn-secondary" onclick="clearCargaForm()"><i class="fas fa-redo me-2"></i>Limpiar Formulario</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="info-block">
+        <h2 class="h4 text-success mb-3"><i class="fas fa-list me-2"></i>Listado de Registros de Dificultad de Carga</h2>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Modelo Auto</th>
+                        <th>Tipo Autonomía</th>
+                        <th>Autonomía (km)</th>
+                        <th>Consumo (kWh/100km)</th>
+                        <th>Tiempo Carga (horas)</th>
+                        <th>Dificultad Carga</th>
+                        <th>Instalación Doméstica</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cargasTableBody">
+                    </tbody>
+            </table>
+        </div>
+        <div id="noCargasMessage" class="text-center text-muted py-4" style="display: none;">
+            No hay registros de dificultad de carga.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function uploadAndSetImageUrl(event, inputId) {
+        const file = event.target.files[0];
+        if (!file) {
+            document.getElementById(inputId).value = '';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/upload_image/', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error al subir la imagen.');
+            }
+
+            const data = await response.json();
+            document.getElementById(inputId).value = data.url; // Establece la URL devuelta por el backend
+            alert('Imagen subida exitosamente!');
+        } catch (error) {
+            console.error('Error al subir imagen:', error);
+            alert('Error al subir imagen: ' + error.message);
+            document.getElementById(inputId).value = ''; // Limpiar el campo si falla
+        }
+    }
+
+    async function loadCargas() {
+        try {
+            const response = await fetch('/cargas/');
+            if (!response.ok) {
+                throw new Error('No se pudieron cargar los registros de carga.');
+            }
+            const cargas = await response.json();
+            const tableBody = document.getElementById('cargasTableBody');
+            tableBody.innerHTML = ''; // Limpiar tabla
+
+            if (cargas.length === 0) {
+                document.getElementById('noCargasMessage').style.display = 'block';
+            } else {
+                document.getElementById('noCargasMessage').style.display = 'none';
+                cargas.forEach(carga => {
+                    const row = `
+                        <tr>
+                            <td>${carga.id}</td>
+                            <td>
+                                ${carga.url_imagen ? `<img src="${carga.url_imagen}" alt="Imagen de ${carga.modelo}" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">` : '<i class="fas fa-image text-muted" style="font-size: 2rem;"></i>'}
+                            </td>
+                            <td>${carga.modelo}</td>
+                            <td>${carga.tipo_autonomia}</td>
+                            <td>${carga.autonomia_km}</td>
+                            <td>${carga.consumo_kwh_100km}</td>
+                            <td>${carga.tiempo_carga_horas}</td>
+                            <td>
+                                ${carga.dificultad_carga === 'alta' ? '<span class="badge bg-danger">Alta</span>' :
+                                   carga.dificultad_carga === 'media' ? '<span class="badge bg-warning">Media</span>' :
+                                   '<span class="badge bg-success">Baja</span>'}
+                            </td>
+                            <td>
+                                ${carga.requiere_instalacion_domestica ? '<span class="badge bg-warning"><i class="fas fa-check-circle"></i> Sí</span>' : '<span class="badge bg-success"><i class="fas fa-times-circle"></i> No</span>'}
+                            </td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-2" onclick="editCarga(${carga.id})"><i class="fas fa-edit"></i> Editar</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteCarga(${carga.id})"><i class="fas fa-trash"></i> Eliminar</button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar cargas:', error);
+            document.getElementById('cargasTableBody').innerHTML = `<tr><td colspan="10" class="text-center text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar los registros de carga: ${error.message}</td></tr>`;
+            document.getElementById('noCargasMessage').style.display = 'none'; // Asegurarse de que el mensaje de error sea visible
+        }
+    }
+
+    async function submitCargaForm(event) {
+        event.preventDefault();
+        const cargaId = document.getElementById('cargaId').value;
+        const form = document.getElementById('cargaForm');
+        const formData = new FormData(form);
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+            if (key === 'id' && !cargaId) continue; // Excluir ID si es creación
+            if (key === 'requiere_instalacion_domestica') {
+                data[key] = value === 'on';
+            } else if (key === 'autonomia_km' || key === 'consumo_kwh_100km' || key === 'tiempo_carga_horas') {
+                data[key] = parseFloat(value);
+            } else {
+                data[key] = value;
+            }
+        }
+
+        const imageUrlInput = document.getElementById('url_imagen_carga').value;
+        if (imageUrlInput) {
+            data['url_imagen'] = imageUrlInput;
+        } else {
+             data['url_imagen'] = null;
+        }
+
+        let url = '/cargas/';
+        let method = 'POST';
+
+        if (cargaId) { // Si hay un ID, es una actualización
+            url = `/cargas/${cargaId}`;
+            method = 'PUT';
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error en la operación.');
+            }
+
+            alert(`Registro de carga ${cargaId ? 'actualizado' : 'creado'} exitosamente!`);
+            clearCargaForm();
+            loadCargas(); // Recargar la tabla
+        } catch (error) {
+            console.error('Error al guardar carga:', error);
+            alert('Error al guardar carga: ' + error.message);
+        }
+    }
+
+    async function editCarga(cargaId) {
+        try {
+            const response = await fetch(`/cargas/${cargaId}`);
+            if (!response.ok) {
+                throw new Error('No se pudo cargar el registro de carga para edición.');
+            }
+            const carga = await response.json();
+
+            document.getElementById('cargaId').value = carga.id;
+            document.getElementById('cargaModelo').value = carga.modelo;
+            document.getElementById('tipo_autonomia').value = carga.tipo_autonomia;
+            document.getElementById('autonomia_km_carga').value = carga.autonomia_km;
+            document.getElementById('consumo_kwh_100km').value = carga.consumo_kwh_100km;
+            document.getElementById('tiempo_carga_horas').value = carga.tiempo_carga_horas;
+            document.getElementById('dificultad_carga').value = carga.dificultad_carga;
+            document.getElementById('requiere_instalacion_domestica').checked = carga.requiere_instalacion_domestica;
+            document.getElementById('url_imagen_carga').value = carga.url_imagen || '';
+        } catch (error) {
+            console.error('Error al editar carga:', error);
+            alert('Error al cargar datos de carga para edición: ' + error.message);
+        }
+    }
+
+    async function deleteCarga(cargaId) {
+        if (!confirm('¿Está seguro de que desea eliminar este registro de carga? Esta acción lo moverá al historial de eliminados.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/cargas/${cargaId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error al eliminar el registro de carga.');
+            }
+
+            alert('Registro de carga eliminado exitosamente y movido al historial!');
+            loadCargas();
+        } catch (error) {
+            console.error('Error al eliminar carga:', error);
+            alert('Error al eliminar carga: ' + error.message);
+        }
+    }
+
+    function clearCargaForm() {
+        document.getElementById('cargaForm').reset();
+        document.getElementById('cargaId').value = '';
+        document.getElementById('url_imagen_carga').value = '';
+    }
+
+    // Cargar cargas al cargar la página inicialmente
+    document.addEventListener('DOMContentLoaded', loadCargas);
+</script>
+{% endblock %}

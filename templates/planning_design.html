@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Planeación y Diseño - Electric Cars Database{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="section-title">Fase de Planeación y Diseño del Proyecto</h1>
+
+    <div class="info-block mb-4 fade-in">
+        <h2 class="h4 text-primary mb-3">1. Diagrama de Clases (Conceptual)</h2>
+        <p>
+            El diagrama de clases es una representación visual de la estructura de las clases del sistema, mostrando sus atributos, operaciones y las relaciones entre ellas. Para este proyecto, las clases principales reflejan las entidades de negocio:
+        </p>
+        <ul class="list-unstyled">
+            <li><i class="fas fa-car-side me-2 text-primary"></i> <strong>AutoElectrico:</strong> Representa un vehículo eléctrico con sus características principales.</li>
+            <li><i class="fas fa-bolt me-2 text-primary"></i> <strong>Carga:</strong> Detalla la dificultad y parámetros de carga para diferentes modelos.</li>
+            <li><i class="fas fa-charging-station me-2 text-primary"></i> <strong>Estacion:</strong> Describe las estaciones de carga disponibles.</li>
+            <li><i class="fas fa-trash-alt me-2 text-primary"></i> <strong>Entidades Eliminadas:</strong> Clases espejo para mantener el historial de registros eliminados (AutoEliminado, CargaEliminada, EstacionEliminada).</li>
+        </ul>
+        <p>
+            Las relaciones son principalmente de composición (la carga y la estación de carga son entidades separadas con sus propios atributos) y de herencia (los modelos SQL heredan de `Base` y los modelos Pydantic de `BaseModel`).
+        </p>
+        <div class="text-center mb-4">
+            <img src="https://via.placeholder.com/800x450/E1F5FE/333333?text=Diagrama+de+Clases" alt="Diagrama de Clases Conceptual" class="img-fluid rounded shadow-sm border border-light">
+            <small class="d-block text-muted mt-2">Representación simplificada de las clases principales del sistema.</small>
+        </div>
+    </div>
+
+    <div class="info-block mb-4 fade-in">
+        <h2 class="h4 text-primary mb-3">2. Modelo de Base de Datos (Relacional)</h2>
+        <p>
+            La base de datos se diseñó utilizando un modelo relacional para asegurar la integridad y la eficiencia en el almacenamiento y recuperación de datos. Se utilizan tablas separadas para cada entidad principal y tablas adicionales para los registros eliminados, permitiendo una gestión robusta del historial.
+        </p>
+        <ul class="list-unstyled">
+            <li><i class="fas fa-table me-2 text-success"></i> <strong><code>autos_electricos</code>:</strong> (id, marca, modelo, anio, capacidad_bateria_kwh, autonomia_km, disponible, url_imagen)</li>
+            <li><i class="fas fa-table me-2 text-success"></i> <strong><code>dificultad_carga</code>:</strong> (id, modelo, tipo_autonomia, autonomia_km, consumo_kwh_100km, tiempo_carga_horas, dificultad_carga, requiere_instalacion_domestica, url_imagen)</li>
+            <li><i class="fas fa-table me-2 text-success"></i> <strong><code>estaciones_carga</code>:</strong> (id, nombre, ubicacion, tipo_conector, potencia_kw, num_conectores, acceso_publico, horario_apertura, coste_por_kwh, operador, url_imagen)</li>
+            <li><i class="fas fa-archive me-2 text-secondary"></i> <strong>Tablas de Eliminados:</strong> <code>autos_eliminados</code>, <code>dificultad_carga_eliminados</code>, <code>estaciones_eliminadas</code> con estructuras espejo.</li>
+        </ul>
+        <div class="text-center mb-4">
+            <img src="https://via.placeholder.com/800x450/E8F5E9/333333?text=Modelo+Relacional+DB" alt="Modelo Relacional de Base de Datos" class="img-fluid rounded shadow-sm border border-light">
+            <small class="d-block text-muted mt-2">Esquema de las tablas y sus relaciones básicas.</small>
+        </div>
+    </div>
+
+    <div class="info-block fade-in">
+        <h2 class="h4 text-primary mb-3">3. Tecnologías Seleccionadas</h2>
+        <p>
+            La elección de las tecnologías se basó en la robustez, escalabilidad, facilidad de desarrollo y la popularidad en el ecosistema de desarrollo web moderno.
+        </p>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+            <div class="col">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fab fa-python fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">Python</h5>
+                        <p class="card-text">Lenguaje de programación principal, conocido por su sintaxis clara y su vasto ecosistema de librerías.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fas fa-rocket fa-3x text-info mb-3"></i>
+                        <h5 class="card-title">FastAPI</h5>
+                        <p class="card-text">Framework web moderno y rápido para construir APIs, con validación de datos automática con Pydantic.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">PostgreSQL & SQLAlchemy</h5>
+                        <p class="card-text">Base de datos relacional robusta y un ORM potente para interactuar con ella de forma programática.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fab fa-html5 fa-3x text-danger mb-3"></i>
+                        <h5 class="card-title">HTML, CSS (Bootstrap), JavaScript</h5>
+                        <p class="card-text">Tecnologías estándar para la creación de la interfaz de usuario, con Bootstrap para un diseño responsivo.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fab fa-git-alt fa-3x text-dark mb-3"></i>
+                        <h5 class="card-title">Git & GitHub</h5>
+                        <p class="card-text">Sistema de control de versiones y plataforma de colaboración para la gestión del código fuente.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fas fa-cloud fa-3x text-secondary mb-3"></i>
+                        <h5 class="card-title">Render (Despliegue)</h5>
+                        <p class="card-text">Plataforma en la nube para el despliegue continuo de la aplicación y la base de datos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

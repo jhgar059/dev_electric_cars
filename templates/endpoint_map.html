@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa de Endpoints - Electric Cars Database{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="section-title">Mapa de Endpoints de la API</h1>
+
+    <div class="info-block fade-in">
+        <p class="lead">
+            Este documento detalla la estructura y propósito de cada endpoint disponible en la API "Electric Cars Database". La API sigue los principios RESTful, permitiendo la interacción con los recursos de autos, cargas y estaciones de carga a través de operaciones CRUD (Crear, Leer, Actualizar, Eliminar) y otras consultas específicas.
+        </p>
+
+        <h2 class="h4 text-primary mb-3">Convenciones:</h2>
+        <ul>
+            <li><code>GET</code>: Recuperar recursos.</li>
+            <li><code>POST</code>: Crear nuevos recursos.</li>
+            <li><code>PUT</code>: Actualizar un recurso existente (reemplazo completo).</li>
+            <li><code>DELETE</code>: Eliminar un recurso (moviéndolo a una tabla de historial).</li>
+            <li><code>{id}</code>: Representa el identificador único de un recurso.</li>
+            <li><code>Query Parameters</code>: Parámetros opcionales o de filtrado en la URL (ej. <code>?param=value</code>).</li>
+        </ul>
+
+        <hr class="my-4">
+
+        <h3 class="h4 text-secondary mb-3"><i class="fas fa-car me-2"></i> Endpoints de Autos Eléctricos (<code>/autos</code>)</h3>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>Ruta</th>
+                    <th>Descripción</th>
+                    <th>Ejemplo de Respuesta (JSON)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>GET</code></td>
+                    <td><code>/api/autos</code></td>
+                    <td>Obtiene una lista de todos los autos eléctricos.</td>
+                    <td><code>[{ "id": 1, "marca": "Tesla", "modelo": "Model 3", ... }]</code></td>
+                </tr>
+                <tr>
+                    <td><code>GET</code></td>
+                    <td><code>/api/autos/{id}</code></td>
+                    <td>Obtiene un auto eléctrico por su ID.</td>
+                    <td><code>{ "id": 1, "marca": "Tesla", "modelo": "Model 3", ... }</code></td>
+                </tr>
+                <tr>
+                    <td><code>POST</code></td>
+                    <td><code>/autos</code></td>
+                    <td>Crea un nuevo auto eléctrico. Requiere datos del auto en el cuerpo de la solicitud (Form data).</td>
+                    <td><code>{ "id": 5, "marca": "Nuevo", "modelo": "X", ... }</code></td>
+                </tr>
+                <tr>
+                    <td><code>PUT</code></td>
+                    <td><code>/autos/{id}</code></td>
+                    <td>Actualiza un auto eléctrico existente por su ID. Requiere todos los datos del auto en el cuerpo de la solicitud (Form data).</td>
+                    <td><code>{ "id": 1, "marca": "Tesla", "modelo": "Model 3 Actualizado", ... }</code></td>
+                </tr>
+                <tr>
+                    <td><code>DELETE</code></td>
+                    <td><code>/autos/{id}</code></td>
+                    <td>Elimina un auto eléctrico por su ID, moviéndolo a la tabla de historial.</td>
+                    <td><code>{ "id": 1, "marca": "Tesla", "modelo": "Model 3", ... }</code> (el auto eliminado)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="h4 text-secondary mb-3 mt-5"><i class="fas fa-bolt me-2"></i> Endpoints de Dificultad de Carga (<code>/cargas</code>)</h3>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>Ruta</th>
+                    <th>Descripción</th>
+                    <th>Ejemplo de Respuesta (JSON)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>GET</code></td>
+                    <td><code>/api/cargas</code></td>
+                    <td>Obtiene una lista de todos los registros de dificultad de carga.</td>
+                    <td><code>[{ "id": 1, "modelo": "Nissan Leaf", "dificultad_carga": "baja", ... }]</code></td>
+                </tr>
+                <tr>
+                    <td><code>GET</code></td>
+                    <td><code>/api/cargas/{id}</code></td>
+                    <td>Obtiene un registro de dificultad de carga por su ID.</td>
+                    <td><code>{ "id": 1, "modelo": "Nissan Leaf", "dificultad_carga": "baja", ... }</code></td>
+                </tr>
+                <tr>
+                    <td><code>POST</code></td>
+                    <td><code>/cargas</code></td>
+                    <td>Crea un nuevo registro de dificultad de carga. Requiere datos de carga (Form data).</td>
+                    <td><code>{ "id": 3, "modelo": "Nuevo Auto", "dificultad_carga": "media", ... }</code></td>
+                </tr>
+                <tr>
+                    <td><code>PUT</code></td>
+                    <td><code>/cargas/{id}</code></td>
+                    <td>Actualiza un registro de dificultad de carga existente por su ID. Requiere todos los datos de carga (Form data).</td>
+                    <td><code>{ "id": 1, "modelo": "Nissan Leaf Actualizado", "dificultad_carga": "media", ... }</code></td>
+                </tr>
+                <tr>
+                    <td><code>DELETE</code></td>
+                    <td><code>/cargas/{id}</code></td>
+                    <td>Elimina un registro de dificultad de carga por su ID, moviéndolo a la tabla de historial.</td>
+                    <td><code>{ "id": 1, "modelo": "Nissan Leaf", "dificultad_carga": "baja", ... }</code> (el registro eliminado)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="h4 text-secondary mb-3 mt-5"><i class="fas fa-charging-station me-2"></i> Endpoints de Estaciones de Carga (<code>/estaciones</code>)</h3>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>Ruta</th>
+                    <th>Descripción</th>
+                    <th>Ejemplo de Respuesta (JSON)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>GET</code></td>
+                    <td><code>/api/estaciones</code></td>
+                    <td>Obtiene una lista de todas las estaciones de carga.</td>
+                    <td><code>[{ "id": 1, "nombre": "Estacion Central", "ubicacion": "Ciudad", ... }]</code></td>
+                </tr>
+                <tr>
+                    <td><code>GET</code></td>
+                    <td><code>/api/estaciones/{id}</code></td>
+                    <td>Obtiene una estación de carga por su ID.</td>
+                    <td><code>{ "id": 1, "nombre": "Estacion Central", "ubicacion": "Ciudad", ... }</code></td>
+                </tr>
+                <tr>
+                    <td><code>POST</code></td>
+                    <td><code>/estaciones</code></td>
+                    <td>Crea una nueva estación de carga. Requiere datos de la estación (Form data).</td>
+                    <td><code>{ "id": 5, "nombre": "Nueva Estacion", "ubicacion": "Afueras", ... }</code></td>
+                </tr>
+                <tr>
+                    <td><code>PUT</code></td>
+                    <td><code>/estaciones/{id}</code></td>
+                    <td>Actualiza una estación de carga existente por su ID. Requiere todos los datos de la estación (Form data).</td>
+                    <td><code>{ "id": 1, "nombre": "Estacion Central Renovada", "ubicacion": "Centro", ... }</code></td>
+                </tr>
+                <tr>
+                    <td><code>DELETE</code></td>
+                    <td><code>/estaciones/{id}</code></td>
+                    <td>Elimina una estación de carga por su ID, moviéndola a la tabla de historial.</td>
+                    <td><code>{ "id": 1, "nombre": "Estacion Central", "ubicacion": "Ciudad", ... }</code> (la estación eliminada)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="h4 text-secondary mb-3 mt-5"><i class="fas fa-history me-2"></i> Endpoints de Historial de Eliminados</h3>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>Ruta</th>
+                    <th>Descripción</th>
+                    <th>Ejemplo de Respuesta (HTML/Renderizado por Jinja2)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>GET</code></td><td><code>/deleted_cars</code></td><td>Muestra la página con el historial de autos eliminados.</td><td>HTML</td></tr>
+                <tr><td><code>GET</code></td><td><code>/deleted_charges</code></td><td>Muestra la página con el historial de registros de carga eliminados.</td><td>HTML</td></tr>
+                <tr><td><code>GET</code></td><td><code>/deleted_stations</code></td><td>Muestra la página con el historial de estaciones de carga eliminadas.</td><td>HTML</td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="h4 text-secondary mb-3 mt-5"><i class="fas fa-chart-line me-2"></i> Endpoints de Estadísticas</h3>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>Ruta</th>
+                    <th>Descripción</th>
+                    <th>Ejemplo de Respuesta (JSON)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>GET</code></td><td><code>/api/statistics/cars_by_brand</code></td><td>Obtiene el conteo de autos por marca para gráficos.</td><td><code>{"Tesla": 10, "Hyundai": 5}</code></td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/statistics/charge_difficulty</code></td><td>Obtiene el conteo de registros de carga por dificultad.</td><td><code>{"baja": 15, "media": 8, "alta": 3}</code></td></tr>
+                <tr><td><code>GET</code></td><td><code>/api/statistics/station_power_distribution</code></td><td>Obtiene el conteo de estaciones por tipo de conector/potencia.</td><td><code>{"CCS": 20, "Tipo 2": 10}</code></td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="h4 text-secondary mb-3 mt-5"><i class="fas fa-file-alt me-2"></i> Endpoints de Páginas Informativas y Raíz</h3>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>Ruta</th>
+                    <th>Descripción</th>
+                    <th>Tipo de Respuesta</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>GET</code></td><td><code>/</code></td><td>Página de inicio de la aplicación.</td><td>HTML</td></tr>
+                <tr><td><code>GET</code></td><td><code>/cars</code></td><td>Página para gestionar autos eléctricos (CRUD e interfaz).</td><td>HTML</td></tr>
+                <tr><td><code>GET</code></td><td><code>/charges</code></td><td>Página para gestionar registros de dificultad de carga (CRUD e interfaz).</td><td>HTML</td></tr>
+                <tr><td><code>GET</code></td><td><code>/stations</code></td><td>Página para gestionar estaciones de carga (CRUD e interfaz).</td><td>HTML</td></tr>
+                <tr><td><code>GET</code></td><td><code>/project_objective</code></td><td>Página que explica el objetivo del proyecto.</td><td>HTML</td></tr>
+                <tr><td><code>GET</code></td><td><code>/mockups_wireframes</code></td><td>Página con los mockups y wireframes de la interfaz.</td><td>HTML</td></tr>
+                <tr><td><code>GET</code></td><td><code>/endpoint_map</code></td><td>Este mismo mapa de endpoints.</td><td>HTML</td></tr>
+                <tr><td><code>GET</code></td><td><code>/statistics_page</code></td><td>Página para mostrar estadísticas y gráficos.</td><td>HTML</td></tr>
+            </tbody>
+        </table>
+
+        <small class="d-block text-muted mt-4">Nota: Los ejemplos de respuesta son representativos y pueden variar ligeramente.</small>
+    </div>
+</div>
+{% endblock %}

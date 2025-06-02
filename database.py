@@ -1,30 +1,9 @@
 import os
+import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
-
-import os
-import psycopg2
-from sqlalchemy import create_engine
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-engine = create_engine(DATABASE_URL, connect_args={"sslmode": "require"})
-
-def obtener_conexion():
-    """Establece conexión con la base de datos en Render"""
-    # Esta función no se usa directamente en la configuración de SQLAlchemy,
-    # pero es un buen ejemplo de cómo psycopg2 podría conectarse.
-    # La conexión principal se hace a través de SQLAlchemy más abajo.
-    DATABASE_URL = os.environ.get('DATABASE_URL', 'postgres://usuario:contraseña@host:puerto/nombre_db')
-
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
 
 # Cargar variables de entorno del archivo .env
 load_dotenv()
@@ -39,19 +18,36 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localho
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# Crear el motor de la base de datos
-engine = create_engine(DATABASE_URL)
+# Determinar si se requiere SSL
+# Si la DATABASE_URL no es localhost, asumimos que es un entorno remoto y requerimos SSL
+# Esto es una heurística; ajusta si tu entorno local también usa SSL o si tu proveedor no lo requiere
+if "localhost" not in DATABASE_URL and "127.0.0.1" not in DATABASE_URL:
+    engine = create_engine(DATABASE_URL, connect_args={"sslmode": "require"})
+else:
+    engine = create_engine(DATABASE_URL)
 
 # Crear una sesión localizada
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base para los modelos
+# Base para los modelos declarativos
 Base = declarative_base()
 
-# Función para obtener la DB (para inyección de dependencias en FastAPI)
+# Función para obtener la DB (para usar con FastAPI Depends)
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+# Esta función es un ejemplo de conexión directa con psycopg2 y no se usa directamente en la configuración de SQLAlchemy
+# pero es útil para verificar la conectividad de bajo nivel si es necesario.
+def obtener_conexion():
+    """Establece conexión con la base de datos en Render (o cualquier PostgreSQL)."""
+    # Usar la misma DATABASE_URL que se usa para SQLAlchemy
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    except Exception as e:
+        print(f"Error al conectar con la base de datos (psycopg2): {e}")
+        raise

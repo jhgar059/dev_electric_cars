@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Estadísticas y Análisis - Electric Cars Database{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="section-title">Estadísticas y Análisis de Datos</h1>
+
+    <div class="info-block mb-4">
+        <p class="lead">
+            Esta sección está dedicada a la visualización y análisis de los datos de autos eléctricos, dificultades de carga y estaciones de carga. Aquí se presentarán gráficos interactivos y métricas clave para ofrecer una comprensión más profunda de la información.
+        </p>
+        <p>
+            Explora las siguientes visualizaciones:
+        </p>
+        <ul class="list-unstyled">
+            <li><i class="fas fa-chart-pie me-2 text-primary"></i> Distribución de autos por marca o año.</li>
+            <li><i class="fas fa-chart-bar me-2 text-primary"></i> Potencia promedio de estaciones de carga por tipo de conector.</li>
+            <li><i class="fas fa-chart-line me-2 text-primary"></i> Tendencias de autonomía o capacidad de batería a lo largo de los años.</li>
+            <li><i class="fas fa-map-marker-alt me-2 text-primary"></i> Mapa de densidad de estaciones de carga.</li>
+            <li><i class="fas fa-percentage me-2 text-primary"></i> Porcentaje de autos disponibles vs. no disponibles.</li>
+        </ul>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="info-block h-100">
+                <h3 class="h4 text-primary mb-3"><i class="fas fa-chart-pie me-2"></i>Autos por Marca</h3>
+                <div class="chart-container-large">
+                    <canvas id="carsByBrandChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="info-block h-100">
+                <h3 class="h4 text-success mb-3"><i class="fas fa-bolt me-2"></i>Dificultad de Carga</h3>
+                <div class="chart-container-large">
+                    <canvas id="chargeDifficultyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="info-block h-100">
+                <h3 class="h4 text-info mb-3"><i class="fas fa-charging-station me-2"></i>Estaciones por Conector</h3>
+                <div class="chart-container-large">
+                    <canvas id="stationPowerChart"></canvas>
+                </div>
+            </div>
+        </div>
+        </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Asegurarse de que los canvas tengan un tamaño fijo para Chart.js
+    // Esto es vital para evitar el descuadre si los contenedores no tienen un tamaño definido
+    // o si Chart.js tiene problemas calculando su tamaño.
+    // Aunque Chart.js es responsive, a veces requiere un contenedor con dimensiones.
+    // Alternativamente, asegúrate de que .chart-container-large tenga un height definido en tu CSS.
+    // Por ejemplo: .chart-container-large { position: relative; height: 400px; width: 100%; }
+
+    // Función para obtener datos de una API y renderizar un gráfico de barras
+    async function renderCarsByBrandChart() {
+        try {
+            const response = await fetch('/api/statistics/cars_by_brand');
+            const data = await response.json();
+            const ctx = document.getElementById('carsByBrandChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Número de Autos',
+                        data: Object.values(data),
+                        backgroundColor: 'rgba(37, 99, 235, 0.6)', // primary-color
+                        borderColor: 'rgba(37, 99, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Importante para controlar el tamaño
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Marca'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: false // Desactivar título de Chart.js si ya tienes un h3
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error al cargar datos para el gráfico de autos por marca:', error);
+            const chartDiv = document.getElementById('carsByBrandChart').parentNode;
+            chartDiv.innerHTML = `<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar el gráfico de autos por marca.</div>`;
+        }
+    }
+
+    // Función para obtener datos de dificultad de carga y renderizar un gráfico de dona
+    async function renderChargeDifficultyChart() {
+        try {
+            const response = await fetch('/api/statistics/charge_difficulty');
+            const data = await response.json();
+            const ctx = document.getElementById('chargeDifficultyChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data).map(key => key.charAt(0).toUpperCase() + key.slice(1)), // Capitalizar
+                    datasets: [{
+                        label: 'Dificultad de Carga',
+                        data: Object.values(data),
+                        backgroundColor: [
+                            'rgba(5, 150, 105, 0.7)',  // Baja (success)
+                            'rgba(217, 119, 6, 0.7)',   // Media (warning)
+                            'rgba(220, 38, 38, 0.7)'    // Alta (danger)
+                        ],
+                        borderColor: [
+                            'rgba(5, 150, 105, 1)',
+                            'rgba(217, 119, 6, 1)',
+                            'rgba(220, 38, 38, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Importante para controlar el tamaño
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false // Desactivar título de Chart.js
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error al cargar datos para el gráfico de dificultad de carga:', error);
+            const chartDiv = document.getElementById('chargeDifficultyChart').parentNode;
+            chartDiv.innerHTML = `<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar el gráfico de dificultad de carga.</div>`;
+        }
+    }
+
+    // Función para obtener datos de distribución de potencia de estaciones y renderizar un gráfico de barras
+    async function renderStationPowerChart() {
+        try {
+            const response = await fetch('/api/statistics/station_power_distribution');
+            const data = await response.json();
+            const ctx = document.getElementById('stationPowerChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Número de Estaciones',
+                        data: Object.values(data),
+                        backgroundColor: 'rgba(14, 165, 233, 0.6)', // info-color
+                        borderColor: 'rgba(14, 165, 233, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Importante para controlar el tamaño
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tipo de Conector'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: false // Desactivar título de Chart.js
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error al cargar datos para el gráfico de estaciones por potencia:', error);
+            const chartDiv = document.getElementById('stationPowerChart').parentNode;
+            chartDiv.innerHTML = `<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar el gráfico de estaciones por tipo de conector.</div>`;
+        }
+    }
+
+    // Cargar todos los gráficos cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        renderCarsByBrandChart();
+        renderStationPowerChart();
+        renderChargeDifficultyChart();
+    });
+</script>
+{% endblock %}

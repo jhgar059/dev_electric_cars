@@ -1,10 +1,15 @@
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import JSONResponse
-from typing import List
+# main.py
+from fastapi import FastAPI, HTTPException, Depends, Request, File, UploadFile, Form
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
+from typing import List, Optional, Dict, Any
 import os
 import logging
 import sys
 from sqlalchemy.orm import Session
+from pathlib import Path
+import shutil
+from sqlalchemy import func # Importar func para estadísticas
 
 # Configuración de logging
 logging.basicConfig(
@@ -14,7 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("main")
 
-# Importaciones de modelos
+# Importaciones de modelos Pydantic (para validación de entrada/salida)
 from modelos import AutoElectrico, AutoElectricoConID
 from modelos import CargaBase, CargaConID, CargaActualizada
 from modelos import EstacionBase, EstacionConID, EstacionActualizada
@@ -22,271 +27,309 @@ from modelos import EstacionBase, EstacionConID, EstacionActualizada
 # Importar la configuración de base de datos y modelos SQL
 from database import get_db, engine, Base
 import models_sql
-import crud
+import crud # Importar todas las funciones CRUD
 
-# Crear las tablas en la base de datos
-# Esta línea asegura que las tablas se creen al iniciar la aplicación si no existen.
-# Es complementaria a db_init.py, útil en entornos donde db_init.py no se ejecuta explícitamente.
+# Crear las tablas en la base de datos (redundante si db_init.py ya se ejecuta, pero no hace daño)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Unificada de Autos Eléctricos")
 
-# --------------------- RAÍZ GENERAL ---------------------
+# Configuración de Jinja2Templates para servir archivos HTML
+templates = Jinja2Templates(directory="templates") # Asume que tus templates HTML están en una carpeta 'templates'
 
-@app.get("/")
-def inicio_general():
-    return {"mensaje": "Bienvenido a la API Unificada de Autos Eléctricos"}
+# Ruta para servir archivos estáticos (ej. CSS, JS, imágenes si no se sirven directamente desde 'static')
+from fastapi.staticfiles import StaticFiles
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# --------------------- SECCIÓN AUTOS ---------------------
+# --------------------- ENDPOINTS PARA VISTAS HTML ---------------------
 
-@app.get("/autos", response_model=List[AutoElectricoConID])
-def obtener_autos(db: Session = Depends(get_db)):
-    try:
-        return crud.get_autos(db)
-    except Exception as e:
-        logger.error(f"Error al leer autos: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-@app.get("/auto/{auto_id}", response_model=AutoElectricoConID)
-def obtener_auto(auto_id: int, db: Session = Depends(get_db)):
-    try:
-        auto = crud.get_auto(db, auto_id)
-        if not auto:
-            raise HTTPException(status_code=404, detail="Auto no encontrado")
-        return auto
-    except ValueError as e:
-        logger.error(f"Error de valor al obtener auto {auto_id}: {e}")
-        raise HTTPException(status_code=400, detail=f"Error de formato: {str(e)}")
-    except Exception as e:
-        logger.error(f"Error al obtener auto {auto_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-@app.post("/auto", response_model=AutoElectricoConID)
-def crear_nuevo_auto(auto: AutoElectrico, db: Session = Depends(get_db)):
-    try:
-        return crud.create_auto(db, auto)
-    except Exception as e:
-        logger.error(f"Error al crear auto: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al crear: {str(e)}")
-
-@app.put("/auto/{auto_id}", response_model=AutoElectricoConID)
-def modificar_auto(auto_id: int, actualizacion: dict, db: Session = Depends(get_db)):
-    try:
-        auto_actualizado = crud.update_auto(db, auto_id, actualizacion)
-        if not auto_actualizado:
-            raise HTTPException(status_code=404, detail="No se pudo actualizar el auto")
-        return auto_actualizado
-    except Exception as e:
-        logger.error(f"Error al actualizar auto {auto_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al actualizar: {str(e)}")
-
-@app.delete("/auto/{auto_id}", response_model=AutoElectricoConID)
-def borrar_auto(auto_id: int, db: Session = Depends(get_db)):
-    try:
-        auto_eliminado = crud.delete_auto(db, auto_id)
-        if not auto_eliminado:
-            raise HTTPException(status_code=404, detail="No se pudo eliminar el auto")
-        return auto_eliminado
-    except Exception as e:
-        logger.error(f"Error al eliminar auto {auto_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al eliminar: {str(e)}")
-
-@app.get("/autos/filtrar/marca/{marca}", response_model=List[AutoElectricoConID])
-def filtrar_autos_por_marca(marca: str, db: Session = Depends(get_db)):
-    try:
-        autos_filtrados = crud.filter_autos_by_marca(db, marca)
-        if not autos_filtrados:
-            raise HTTPException(status_code=404, detail="No se encontraron autos con esa marca")
-        return autos_filtrados
-    except Exception as e:
-        logger.error(f"Error al filtrar por marca {marca}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-# --------------------- SECCIÓN DIFICULTAD DE CARGA ---------------------
-
-@app.get("/cargas", response_model=List[CargaConID])
-def listar_cargas(db: Session = Depends(get_db)):
-    try:
-        return crud.get_cargas(db)
-    except Exception as e:
-        logger.error(f"Error al leer cargas: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-@app.get("/carga/{carga_id}", response_model=CargaConID)
-def obtener_carga(carga_id: int, db: Session = Depends(get_db)):
-    try:
-        carga = crud.get_carga(db, carga_id)
-        if not carga:
-            raise HTTPException(status_code=404, detail="Carga no encontrada")
-        return carga
-    except Exception as e:
-        logger.error(f"Error al obtener carga {carga_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-@app.post("/carga", response_model=CargaConID)
-def crear_nueva_carga(carga: CargaBase, db: Session = Depends(get_db)):
-    try:
-        return crud.create_carga(db, carga)
-    except Exception as e:
-        logger.error(f"Error al crear carga: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al crear: {str(e)}")
-
-@app.put("/carga/{carga_id}", response_model=CargaConID)
-def actualizar_carga(carga_id: int, datos: CargaActualizada, db: Session = Depends(get_db)):
-    try:
-        actualizada = crud.update_carga(db, carga_id, datos.model_dump(exclude_unset=True))
-        if not actualizada:
-            raise HTTPException(status_code=404, detail="No se pudo actualizar")
-        return actualizada
-    except Exception as e:
-        logger.error(f"Error al actualizar carga {carga_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al actualizar: {str(e)}")
-
-@app.delete("/carga/{carga_id}", response_model=CargaConID)
-def eliminar_carga(carga_id: int, db: Session = Depends(get_db)):
-    try:
-        eliminada = crud.delete_carga(db, carga_id)
-        if not eliminada:
-            raise HTTPException(status_code=404, detail="No se pudo eliminar")
-        return eliminada
-    except Exception as e:
-        logger.error(f"Error al eliminar carga {carga_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al eliminar: {str(e)}")
-
-@app.get("/cargas/filtrar/modelo/{modelo}", response_model=List[CargaConID])
-def filtrar_cargas_modelo(modelo: str, db: Session = Depends(get_db)):
-    try:
-        resultado = crud.filter_cargas_by_modelo(db, modelo)
-        if not resultado:
-            raise HTTPException(status_code=404, detail="No se encontraron coincidencias")
-        return resultado
-    except Exception as e:
-        logger.error(f"Error al filtrar cargas por modelo {modelo}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-@app.get("/cargas/filtrar/dificultad/{nivel}", response_model=List[CargaConID])
-def filtrar_cargas_dificultad(nivel: str, db: Session = Depends(get_db)):
-    try:
-        resultado = crud.filter_cargas_by_dificultad(db, nivel)
-        if not resultado:
-            raise HTTPException(status_code=404, detail="No se encontraron coincidencias")
-        return resultado
-    except Exception as e:
-        logger.error(f"Error al filtrar cargas por dificultad {nivel}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-# --------------------- SECCIÓN ESTACIONES DE CARGA ---------------------
-
-@app.get("/estaciones", response_model=List[EstacionConID])
-def listar_estaciones(db: Session = Depends(get_db)):
-    try:
-        return crud.get_estaciones(db)
-    except Exception as e:
-        logger.error(f"Error al leer estaciones: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-@app.get("/estacion/{estacion_id}", response_model=EstacionConID)
-def obtener_estacion(estacion_id: int, db: Session = Depends(get_db)):
-    try:
-        estacion = crud.get_estacion(db, estacion_id)
-        if not estacion:
-            raise HTTPException(status_code=404, detail="Estación no encontrada")
-        return estacion
-    except Exception as e:
-        logger.error(f"Error al obtener estación {estacion_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-@app.get("/estaciones/filtrar/operador/{operador}", response_model=List[EstacionConID])
-def filtrar_por_operador(operador: str, db: Session = Depends(get_db)):
-    try:
-        resultados = crud.filter_estaciones_by_operador(db, operador)
-        if not resultados:
-            raise HTTPException(status_code=404, detail="No se encontraron estaciones con ese operador")
-        return resultados
-    except Exception as e:
-        logger.error(f"Error al filtrar por operador {operador}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-@app.get("/estaciones/filtrar/conector/{tipo_conector}", response_model=List[EstacionConID])
-def filtrar_por_conector(tipo_conector: str, db: Session = Depends(get_db)):
-    try:
-        resultados = crud.filter_estaciones_by_tipo_conector(db, tipo_conector)
-        if not resultados:
-            raise HTTPException(status_code=404, detail="No se encontraron estaciones con ese tipo de conector")
-        return resultados
-    except Exception as e:
-        logger.error(f"Error al filtrar por conector {tipo_conector}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
-
-@app.post("/estacion", response_model=EstacionConID)
-def agregar_estacion(estacion: EstacionBase, db: Session = Depends(get_db)):
-    try:
-        return crud.create_estacion(db, estacion)
-    except Exception as e:
-        logger.error(f"Error al crear estación: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al crear: {str(e)}")
-
-@app.put("/estacion/{estacion_id}", response_model=EstacionConID)
-def actualizar_estacion(estacion_id: int, cambios: EstacionActualizada, db: Session = Depends(get_db)):
-    try:
-        actualizada = crud.update_estacion(db, estacion_id, cambios.model_dump(exclude_unset=True))
-        if not actualizada:
-            raise HTTPException(status_code=404, detail="No se pudo actualizar la estación")
-        return actualizada
-    except Exception as e:
-        logger.error(f"Error al actualizar estación {estacion_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al actualizar: {str(e)}")
-
-@app.delete("/estacion/{estacion_id}", response_model=EstacionConID)
-def eliminar_estacion(estacion_id: int, db: Session = Depends(get_db)):
-    try:
-        eliminada = crud.delete_estacion(db, estacion_id)
-        if not eliminada:
-            raise HTTPException(status_code=404, detail="No se encontró la estación a eliminar")
-        return eliminada
-    except Exception as e:
-        logger.error(f"Error al eliminar estación {estacion_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al eliminar: {str(e)}")
-
-# --------------------- SECCIÓN ELEMENTOS ELIMINADOS ---------------------
-
-@app.get("/eliminados/autos", response_model=List[AutoElectricoConID])
-def obtener_autos_eliminados(db: Session = Depends(get_db)):
+@app.get("/", response_class=HTMLResponse, summary="Página de Inicio")
+async def read_root(request: Request, db: Session = Depends(get_db)):
     """
-    Obtiene todos los autos eléctricos que han sido eliminados.
+    Muestra la página principal de la aplicación con la autonomía promedio.
+    """
+    average_autonomy = crud.get_average_autonomy(db)
+    return templates.TemplateResponse("index.html", {"request": request, "average_autonomy": average_autonomy})
+
+@app.get("/cars", response_class=HTMLResponse, summary="Página de Gestión de Autos")
+async def cars_page(request: Request):
+    """
+    Muestra la página para gestionar autos eléctricos (CRUD).
+    """
+    return templates.TemplateResponse("cars.html", {"request": request})
+
+@app.get("/charges", response_class=HTMLResponse, summary="Página de Gestión de Cargas")
+async def charges_page(request: Request):
+    """
+    Muestra la página para gestionar registros de dificultad de carga (CRUD).
+    """
+    return templates.TemplateResponse("charges.html", {"request": request})
+
+@app.get("/stations", response_class=HTMLResponse, summary="Página de Gestión de Estaciones")
+async def stations_page(request: Request):
+    """
+    Muestra la página para gestionar estaciones de carga (CRUD).
+    """
+    return templates.TemplateResponse("stations.html", {"request": request})
+
+@app.get("/deleted_cars", response_class=HTMLResponse, summary="Página de Autos Eliminados")
+async def deleted_cars_page(request: Request, db: Session = Depends(get_db)):
+    """
+    Muestra el historial de autos eléctricos eliminados.
+    """
+    autos_eliminados = crud.get_autos_eliminados(db)
+    return templates.TemplateResponse("deleted_cars.html", {"request": request, "autos_eliminados": autos_eliminados})
+
+@app.get("/deleted_charges", response_class=HTMLResponse, summary="Página de Cargas Eliminadas")
+async def deleted_charges_page(request: Request, db: Session = Depends(get_db)):
+    """
+    Muestra el historial de registros de carga eliminados.
     """
     try:
-        return crud.get_autos_eliminados(db)
+        cargas_eliminadas = crud.get_cargas_eliminadas(db)
+        return templates.TemplateResponse("deleted_charges.html", {"request": request, "cargas_eliminadas": cargas_eliminadas})
     except Exception as e:
-        logger.error(f"Error al leer autos eliminados: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+        logger.error(f"Error al cargar la página de cargas eliminadas: {e}")
+        raise HTTPException(status_code=500, detail="Error interno del servidor al cargar cargas eliminadas.")
 
-@app.get("/eliminados/cargas", response_model=List[CargaConID])
-def obtener_cargas_eliminadas(db: Session = Depends(get_db)):
+
+@app.get("/deleted_stations", response_class=HTMLResponse, summary="Página de Estaciones Eliminadas")
+async def deleted_stations_page(request: Request, db: Session = Depends(get_db)):
     """
-    Obtiene todos los registros de dificultad de carga que han sido eliminados.
+    Muestra el historial de estaciones de carga eliminadas.
+    """
+    estaciones_eliminadas = crud.get_estaciones_eliminadas(db)
+    return templates.TemplateResponse("deleted_stations.html", {"request": request, "estaciones_eliminadas": estaciones_eliminadas})
+
+@app.get("/project_objective", response_class=HTMLResponse, summary="Página Objetivo del Proyecto")
+async def project_objective_page(request: Request):
+    """
+    Muestra la página con el objetivo del proyecto.
+    """
+    return templates.TemplateResponse("project_objective.html", {"request": request})
+
+@app.get("/developer_info", response_class=HTMLResponse, summary="Página Información del Desarrollador")
+async def developer_info_page(request: Request):
+    """
+    Muestra la página con información sobre el desarrollador.
+    """
+    return templates.TemplateResponse("developer_info.html", {"request": request})
+
+@app.get("/planning_design", response_class=HTMLResponse, summary="Página de Planeación y Diseño")
+async def planning_design_page(request: Request):
+    """
+    Muestra la página con detalles de la planeación y diseño del proyecto.
+    """
+    return templates.TemplateResponse("planning_design.html", {"request": request})
+
+@app.get("/mockups_wireframes", response_class=HTMLResponse, summary="Página de Mockups y Wireframes")
+async def mockups_wireframes_page(request: Request):
+    """
+    Muestra la página con los mockups y wireframes del proyecto.
+    """
+    return templates.TemplateResponse("mockups_wireframes.html", {"request": request})
+
+@app.get("/endpoint_map", response_class=HTMLResponse, summary="Mapa de Endpoints de la API")
+async def endpoint_map_page(request: Request):
+    """
+    Muestra un mapa con todos los endpoints de la API.
+    """
+    return templates.TemplateResponse("endpoint_map.html", {"request": request})
+
+@app.get("/statistics_page", response_class=HTMLResponse, summary="Página de Estadísticas")
+async def statistics_page(request: Request):
+    """
+    Muestra la página con gráficos y estadísticas.
+    """
+    return templates.TemplateResponse("statistics_page.html", {"request": request})
+
+# --------------------- ENDPOINTS DE ESTADÍSTICAS (API) ---------------------
+
+@app.get("/api/statistics/cars_by_brand", response_model=Dict[str, int], summary="Estadísticas de Autos por Marca")
+async def get_cars_by_brand_stats(db: Session = Depends(get_db)):
+    """
+    Obtiene el número de autos eléctricos por marca.
     """
     try:
-        return crud.get_cargas_eliminadas(db)
+        brand_counts = db.query(models_sql.AutoElectricoSQL.marca, func.count(models_sql.AutoElectricoSQL.marca)) \
+                         .group_by(models_sql.AutoElectricoSQL.marca).all()
+        return {brand: count for brand, count in brand_counts}
     except Exception as e:
-        logger.error(f"Error al leer cargas eliminadas: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+        logger.error(f"Error al obtener estadísticas de autos por marca: {e}")
+        raise HTTPException(status_code=500, detail="Error al cargar estadísticas de autos por marca.")
 
-@app.get("/eliminados/estaciones", response_model=List[EstacionConID])
-def obtener_estaciones_eliminadas(db: Session = Depends(get_db)):
+@app.get("/api/statistics/charge_difficulty", response_model=Dict[str, int], summary="Estadísticas de Dificultad de Carga")
+async def get_charge_difficulty_stats(db: Session = Depends(get_db)):
     """
-    Obtiene todas las estaciones de carga que han sido eliminadas.
+    Obtiene el número de registros de carga por nivel de dificultad.
     """
     try:
-        return crud.get_estaciones_eliminadas(db)
+        difficulty_counts = db.query(models_sql.CargaSQL.dificultad_carga, func.count(models_sql.CargaSQL.dificultad_carga)) \
+                             .group_by(models_sql.CargaSQL.dificultad_carga).all()
+        return {difficulty: count for difficulty, count in difficulty_counts}
     except Exception as e:
-        logger.error(f"Error al leer estaciones eliminadas: {e}")
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+        logger.error(f"Error al obtener estadísticas de dificultad de carga: {e}")
+        raise HTTPException(status_code=500, detail="Error al cargar estadísticas de dificultad de carga.")
+
+@app.get("/api/statistics/station_power_distribution", response_model=Dict[str, int], summary="Estadísticas de Distribución de Potencia de Estaciones")
+async def get_station_power_distribution(db: Session = Depends(get_db)):
+    """
+    Obtiene el número de estaciones de carga por tipo de conector.
+    """
+    try:
+        power_distribution = db.query(models_sql.EstacionSQL.tipo_conector, func.count(models_sql.EstacionSQL.tipo_conector)) \
+                                .group_by(models_sql.EstacionSQL.tipo_conector).all()
+        return {connector_type: count for connector_type, count in power_distribution}
+    except Exception as e:
+        logger.error(f"Error al obtener estadísticas de distribución de potencia de estaciones: {e}")
+        raise HTTPException(status_code=500, detail="Error al cargar estadísticas de distribución de potencia de estaciones.")
+
+@app.get("/api/statistics/average_autonomy", response_model=Dict[str, float], summary="Autonomía Promedio de Autos")
+async def get_average_autonomy_api(db: Session = Depends(get_db)):
+    """
+    Obtiene la autonomía promedio de todos los autos eléctricos.
+    """
+    try:
+        average_autonomy = crud.get_average_autonomy(db)
+        return {"average_autonomy": round(average_autonomy, 2)} # Redondear a 2 decimales
+    except Exception as e:
+        logger.error(f"Error al obtener autonomía promedio: {e}")
+        raise HTTPException(status_code=500, detail="Error al cargar la autonomía promedio.")
+
+# --------------------- ENDPOINTS CRUD PARA AUTOS ELÉCTRICOS ---------------------
+
+@app.post("/autos/", response_model=AutoElectricoConID, status_code=201, summary="Crea un nuevo auto eléctrico")
+async def create_new_auto(auto: AutoElectrico, db: Session = Depends(get_db)):
+    db_auto = crud.create_auto(db=db, auto=auto)
+    if db_auto is None:
+        raise HTTPException(status_code=400, detail="Ya existe un auto con el mismo modelo y año.")
+    return db_auto
+
+@app.get("/autos/", response_model=List[AutoElectricoConID], summary="Obtiene todos los autos eléctricos")
+async def read_autos(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    autos = crud.get_autos(db, skip=skip, limit=limit)
+    return autos
+
+@app.get("/autos/{auto_id}", response_model=AutoElectricoConID, summary="Obtiene un auto eléctrico por ID")
+async def read_auto(auto_id: int, db: Session = Depends(get_db)):
+    db_auto = crud.get_auto(db, auto_id=auto_id)
+    if db_auto is None:
+        raise HTTPException(status_code=404, detail="Auto no encontrado")
+    return db_auto
+
+@app.get("/autos/search/", response_model=List[AutoElectricoConID], summary="Busca autos por modelo")
+async def search_auto_by_model(modelo: str, db: Session = Depends(get_db)):
+    autos = crud.get_auto_by_modelo(db, modelo=modelo)
+    if not autos:
+        raise HTTPException(status_code=404, detail=f"No se encontraron autos con el modelo '{modelo}'")
+    return autos
+
+@app.put("/autos/{auto_id}", response_model=AutoElectricoConID, summary="Actualiza un auto eléctrico existente")
+async def update_existing_auto(auto_id: int, auto: AutoElectrico, db: Session = Depends(get_db)):
+    db_auto = crud.update_auto(db=db, auto_id=auto_id, auto=auto)
+    if db_auto is None:
+        raise HTTPException(status_code=404, detail="Auto no encontrado")
+    return db_auto
+
+@app.delete("/autos/{auto_id}", response_model=AutoElectricoConID, summary="Elimina un auto eléctrico (lo mueve a eliminados)")
+async def delete_existing_auto(auto_id: int, db: Session = Depends(get_db)):
+    db_auto = crud.delete_auto(db=db, auto_id=auto_id)
+    if db_auto is None:
+        raise HTTPException(status_code=404, detail="Auto no encontrado")
+    return db_auto
+
+# --------------------- ENDPOINTS CRUD PARA CARGAS ---------------------
+
+@app.post("/cargas/", response_model=CargaConID, status_code=201, summary="Crea un nuevo registro de carga")
+async def create_new_carga(carga: CargaBase, db: Session = Depends(get_db)):
+    db_carga = crud.create_carga(db=db, carga=carga)
+    if db_carga is None:
+        raise HTTPException(status_code=400, detail="Ya existe un registro de carga para el mismo modelo y tipo de autonomía.")
+    return db_carga
+
+@app.get("/cargas/", response_model=List[CargaConID], summary="Obtiene todos los registros de carga")
+async def read_cargas(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    cargas = crud.get_cargas(db, skip=skip, limit=limit)
+    return cargas
+
+@app.get("/cargas/{carga_id}", response_model=CargaConID, summary="Obtiene un registro de carga por ID")
+async def read_carga(carga_id: int, db: Session = Depends(get_db)):
+    db_carga = crud.get_carga(db, carga_id=carga_id)
+    if db_carga is None:
+        raise HTTPException(status_code=404, detail="Registro de carga no encontrado")
+    return db_carga
+
+@app.put("/cargas/{carga_id}", response_model=CargaConID, summary="Actualiza un registro de carga existente")
+async def update_existing_carga(carga_id: int, carga: CargaActualizada, db: Session = Depends(get_db)):
+    db_carga = crud.update_carga(db=db, carga_id=carga_id, carga=carga)
+    if db_carga is None:
+        raise HTTPException(status_code=404, detail="Registro de carga no encontrado")
+    return db_carga
+
+@app.delete("/cargas/{carga_id}", response_model=CargaConID, summary="Elimina un registro de carga (lo mueve a eliminados)")
+async def delete_existing_carga(carga_id: int, db: Session = Depends(get_db)):
+    db_carga = crud.delete_carga(db=db, carga_id=carga_id)
+    if db_carga is None:
+        raise HTTPException(status_code=404, detail="Registro de carga no encontrado")
+    return db_carga
+
+# --------------------- ENDPOINTS CRUD PARA ESTACIONES DE CARGA ---------------------
+
+@app.post("/estaciones/", response_model=EstacionConID, status_code=201, summary="Crea una nueva estación de carga")
+async def create_new_estacion(estacion: EstacionBase, db: Session = Depends(get_db)):
+    db_estacion = crud.create_estacion(db=db, estacion=estacion)
+    if db_estacion is None:
+        raise HTTPException(status_code=400, detail="Ya existe una estación de carga con el mismo nombre y ubicación.")
+    return db_estacion
+
+@app.get("/estaciones/", response_model=List[EstacionConID], summary="Obtiene todas las estaciones de carga")
+async def read_estaciones(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    estaciones = crud.get_estaciones(db, skip=skip, limit=limit)
+    return estaciones
+
+@app.get("/estaciones/{estacion_id}", response_model=EstacionConID, summary="Obtiene una estación de carga por ID")
+async def read_estacion(estacion_id: int, db: Session = Depends(get_db)):
+    db_estacion = crud.get_estacion(db, estacion_id=estacion_id)
+    if db_estacion is None:
+        raise HTTPException(status_code=404, detail="Estación de carga no encontrada")
+    return db_estacion
+
+@app.put("/estaciones/{estacion_id}", response_model=EstacionConID, summary="Actualiza una estación de carga existente")
+async def update_existing_estacion(estacion_id: int, estacion: EstacionActualizada, db: Session = Depends(get_db)):
+    db_estacion = crud.update_estacion(db=db, estacion_id=estacion_id, estacion=estacion)
+    if db_estacion is None:
+        raise HTTPException(status_code=404, detail="Estación de carga no encontrada")
+    return db_estacion
+
+@app.delete("/estaciones/{estacion_id}", response_model=EstacionConID, summary="Elimina una estación de carga (la mueve a eliminados)")
+async def delete_existing_estacion(estacion_id: int, db: Session = Depends(get_db)):
+    db_estacion = crud.delete_estacion(db=db, estacion_id=estacion_id)
+    if db_estacion is None:
+        raise HTTPException(status_code=404, detail="Estación de carga no encontrada")
+    return db_estacion
 
 
-if __name__ == "__main__":
-    import uvicorn
-    # Obtener el puerto desde las variables de entorno (necesario para Render)
-    port = int(os.environ.get("PORT", 5050))
-    logger.info(f"Iniciando servidor FastAPI en puerto {port}...")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+# --------------------- MANEJO DE IMÁGENES (Subida) ---------------------
+
+UPLOAD_DIRECTORY = Path("static/images") # Define un directorio para guardar imágenes
+UPLOAD_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
+@app.post("/upload_image/", summary="Sube una imagen y devuelve su URL")
+async def upload_image(file: UploadFile = File(...)):
+    try:
+        file_extension = Path(file.filename).suffix
+        if file_extension.lower() not in [".png", ".jpg", ".jpeg", ".gif"]:
+            raise HTTPException(status_code=400, detail="Formato de archivo no soportado. Se permiten .png, .jpg, .jpeg, .gif")
+
+        # Genera un nombre de archivo único
+        unique_filename = f"{os.urandom(16).hex()}{file_extension}"
+        file_path = UPLOAD_DIRECTORY / unique_filename
+
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Devuelve la URL relativa de la imagen
+        return {"filename": unique_filename, "url": f"/static/images/{unique_filename}"}
+    except Exception as e:
+        logger.error(f"Error al subir imagen: {e}")
+        raise HTTPException(status_code=500, detail=f"Error al subir imagen: {e}")

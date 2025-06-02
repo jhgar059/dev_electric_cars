@@ -5,6 +5,13 @@ import os
 import logging
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float, Boolean, inspect
+from sqlalchemy.orm import sessionmaker
+# Importar explícitamente los modelos SQL para que Base.metadata los reconozca
+from models_sql import (
+    AutoElectricoSQL, CargaSQL, EstacionSQL,
+    AutoEliminadoSQL, CargaEliminadaSQL, EstacionEliminadaSQL
+)
+from database import DATABASE_URL, Base, engine # Importar el engine y Base de database.py para consistencia
 
 # Configuración de logging
 logging.basicConfig(
@@ -13,176 +20,125 @@ logging.basicConfig(
 )
 logger = logging.getLogger("migrador")
 
-# Cargar variables de entorno
-load_dotenv()
+# Crear una sesión local para las operaciones de migración
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Obtener la URL de la base de datos
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/electricos_db")
+logger.info(f"Conectando a la base de datos para migración...")
 
-# Configuración para SQLAlchemy cuando el DATABASE_URL comienza con "postgres://" (necesario para Render)
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
-logger.info(f"Conectando a la base de datos...")
-
-# Crear el motor de la base de datos
-engine = create_engine(DATABASE_URL)
+# Definir la metadata de la base de datos
 metadata = MetaData()
 
-# Definir tablas adicionales para los elementos eliminados (si no están ya en models_sql.py y se cargan automáticamente)
-# Si ya están en models_sql.py y Base.metadata.create_all() las crea, esta parte es redundante para la creación,
-# pero es necesaria para referenciarlas en la migración si no se usa autoload_with en las tablas eliminadas.
-# En tu caso, ya las tienes en models_sql.py, así que esto es más una referencia para la migración.
-deleted_auto = Table(
-    "autos_eliminados",
-    metadata,
-    Column("id", Integer, primary_key=True),
-    Column("marca", String(30), nullable=False),
-    Column("modelo", String(30), nullable=False),
-    Column("anio", Integer, nullable=False),
-    Column("capacidad_bateria_kwh", Float, nullable=False),
-    Column("autonomia_km", Float, nullable=False),
-    Column("disponible", Boolean, default=True)
-)
+# Función para convertir tipos de datos para AutoElectrico
+def conversion_tipo_auto(fila: dict) -> dict:
+    return {
+        "id": int(fila["id"]),
+        "marca": fila["marca"],
+        "modelo": fila["modelo"],
+        "anio": int(fila["anio"]),
+        "capacidad_bateria_kwh": float(fila["capacidad_bateria_kwh"]),
+        "autonomia_km": float(fila["autonomia_km"]),
+        "disponible": fila["disponible"].lower() == "true",
+        "url_imagen": fila.get("url_imagen") # Usar .get() para evitar KeyError si el campo no existe
+    }
 
-deleted_carga = Table(
-    "dificultad_carga_eliminados",
-    metadata,
-    Column("id", Integer, primary_key=True),
-    Column("modelo", String(50), nullable=False),
-    Column("tipo_autonomia", String(10), nullable=False),
-    Column("autonomia_km", Float, nullable=False),
-    Column("consumo_kwh_100km", Float, nullable=False),
-    Column("tiempo_carga_horas", Float, nullable=False),
-    Column("dificultad_carga", String(5), nullable=False),
-    Column("requiere_instalacion_domestica", Boolean, default=False)
-)
+# Función para convertir tipos de datos para Carga
+def conversion_tipo_carga(fila: dict) -> dict:
+    return {
+        "id": int(fila["id"]),
+        "modelo": fila["modelo"],
+        "tipo_autonomia": fila["tipo_autonomia"],
+        "autonomia_km": float(fila["autonomia_km"]),
+        "consumo_kwh_100km": float(fila["consumo_kwh_100km"]),
+        "tiempo_carga_horas": float(fila["tiempo_carga_horas"]),
+        "dificultad_carga": fila["dificultad_carga"],
+        "requiere_instalacion_domestica": fila["requiere_instalacion_domestica"].lower() == "true",
+        "url_imagen": fila.get("url_imagen")
+    }
 
-deleted_estacion = Table(
-    "estaciones_eliminadas",
-    metadata,
-    Column("id", Integer, primary_key=True),
-    Column("nombre", String(50), nullable=False),
-    Column("ubicacion", String(100), nullable=False),
-    Column("tipo_conector", String(10), nullable=False),
-    Column("potencia_kw", Float, nullable=False),
-    Column("num_conectores", Integer, nullable=False),
-    Column("acceso_publico", Boolean, default=True),
-    Column("horario_apertura", String(50), nullable=False),
-    Column("coste_por_kwh", Float, nullable=False),
-    Column("operador", String(50), nullable=False)
-)
+# Función para convertir tipos de datos para Estacion
+def conversion_tipo_estacion(fila: dict) -> dict:
+    return {
+        "id": int(fila["id"]),
+        "nombre": fila["nombre"],
+        "ubicacion": fila["ubicacion"],
+        "tipo_conector": fila["tipo_conector"],
+        "potencia_kw": float(fila["potencia_kw"]),
+        "num_conectores": int(fila["num_conectores"]),
+        "acceso_publico": fila["acceso_publico"].lower() == "true",
+        "horario_apertura": fila["horario_apertura"],
+        "coste_por_kwh": float(fila["coste_por_kwh"]),
+        "operador": fila["operador"],
+        "url_imagen": fila.get("url_imagen")
+    }
 
-# Crear las tablas si no existen (esto es redundante si db_init.py ya lo hace, pero no hace daño)
-logger.info("Creando tablas para elementos eliminados si no existen...")
-metadata.create_all(engine)
+def migrar_csv_a_db(filepath: str, sql_model: type, conversion_func):
+    """
+    Lee un archivo CSV y migra sus datos a la tabla de la base de datos
+    correspondiente, actualizando registros existentes o insertando nuevos.
+    """
+    if not os.path.exists(filepath):
+        logger.info(f"Archivo CSV no encontrado: {filepath}. Saltando migración.")
+        return
 
-
-def convertir_bool(valor):
-    """Convierte una cadena de texto a booleano"""
-    if isinstance(valor, str):
-        return valor.lower() == "true"
-    return valor
-
-
-def migrar_csv_a_db(archivo_csv, tabla, conversion_tipos):
-    """Migra los datos de un archivo CSV a una tabla en la base de datos"""
+    logger.info(f"Iniciando migración desde {filepath} a la tabla '{sql_model.__tablename__}'...")
+    datos_a_insertar = []
     try:
-        logger.info(f"Migrando datos de {archivo_csv} a tabla {tabla.name}...")
-        with open(archivo_csv, 'r', newline='') as f:
-            reader = csv.DictReader(f)
-            with engine.connect() as conn:
-                for row in reader:
-                    # Convertir tipos según la función proporcionada
-                    datos = conversion_tipos(row)
-                    # Verificar si ya existe un registro con el mismo ID
-                    stmt = tabla.select().where(tabla.c.id == datos["id"])
-                    result = conn.execute(stmt).fetchone()
-                    if not result:
-                        # Si no existe, insertar
-                        conn.execute(tabla.insert().values(**datos))
-                conn.commit() # Commit after all inserts for efficiency
-        logger.info(f"Migración de {archivo_csv} completada con éxito")
-        return True
-    except FileNotFoundError:
-        logger.warning(f"Archivo CSV no encontrado: {archivo_csv}. Saltando migración para este archivo.")
-        return False
+        with open(filepath, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                try:
+                    processed_row = conversion_func(row)
+                    datos_a_insertar.append(processed_row)
+                except (ValueError, KeyError) as e:
+                    logger.warning(f"Saltando fila debido a un error de formato en {filepath}: {row}. Error: {e}")
+                    continue
+
+        db = SessionLocal()
+        try:
+            for data in datos_a_insertar:
+                # Intenta encontrar el registro por ID para actualizarlo si existe
+                db_obj = db.query(sql_model).filter(sql_model.id == data['id']).first()
+                if db_obj:
+                    # Actualizar campos existentes
+                    for key, value in data.items():
+                        setattr(db_obj, key, value)
+                    logger.debug(f"Actualizando registro ID {data['id']} en {sql_model.__tablename__}")
+                else:
+                    # Insertar nuevo registro
+                    new_obj = sql_model(**data)
+                    db.add(new_obj)
+                    logger.debug(f"Insertando nuevo ID {data['id']} en {sql_model.__tablename__}")
+            db.commit()
+            logger.info(f"✅ Migración completada para {filepath}. {len(datos_a_insertar)} registros procesados.")
+
+        except Exception as e:
+            db.rollback() # Revertir si hay algún error
+            logger.error(f"❌ Error durante la migración de {filepath} a la base de datos: {e}", exc_info=True)
+        finally:
+            db.close()
+
     except Exception as e:
-        logger.error(f"Error al migrar {archivo_csv}: {str(e)}")
-        return False
-
-
-def conversion_tipo_auto(row):
-    """Convierte los tipos de datos para la tabla de autos"""
-    return {
-        "id": int(row["id"]),
-        "marca": row["marca"],
-        "modelo": row["modelo"],
-        "anio": int(row["anio"]),
-        "capacidad_bateria_kwh": float(row["capacidad_bateria_kwh"]),
-        "autonomia_km": float(row["autonomia_km"]),
-        "disponible": convertir_bool(row["disponible"])
-    }
-
-
-def conversion_tipo_carga(row):
-    """Convierte los tipos de datos para la tabla de cargas"""
-    return {
-        "id": int(row["id"]),
-        "modelo": row["modelo"],
-        "tipo_autonomia": row["tipo_autonomia"],
-        "autonomia_km": float(row["autonomia_km"]),
-        "consumo_kwh_100km": float(row["consumo_kwh_100km"]),
-        "tiempo_carga_horas": float(row["tiempo_carga_horas"]),
-        "dificultad_carga": row["dificultad_carga"],
-        "requiere_instalacion_domestica": convertir_bool(row["requiere_instalacion_domestica"])
-    }
-
-
-def conversion_tipo_estacion(row):
-    """Convierte los tipos de datos para la tabla de estaciones"""
-    return {
-        "id": int(row["id"]),
-        "nombre": row["nombre"],
-        "ubicacion": row["ubicacion"],
-        "tipo_conector": row["tipo_conector"],
-        "potencia_kw": float(row["potencia_kw"]),
-        "num_conectores": int(row["num_conectores"]),
-        "acceso_publico": convertir_bool(row["acceso_publico"]),
-        "horario_apertura": row["horario_apertura"],
-        "coste_por_kwh": float(row["coste_por_kwh"]),
-        "operador": row["operador"]
-    }
-
+        logger.error(f"❌ Error al leer el archivo CSV {filepath}: {e}")
 
 def main():
     """Función principal para ejecutar la migración"""
-    # Obtener referencia a las tablas existentes
-    inspector = inspect(engine)
-    existentes = inspector.get_table_names()
-
-    logger.info(f"Tablas existentes en la base de datos: {existentes}")
-
-    # Tablas principales (deben ya existir según tu código)
-    # Usamos autoload_with para cargar la definición de la tabla desde la DB si ya existe
-    auto_table = Table("autos_electricos", metadata, autoload_with=engine)
-    carga_table = Table("dificultad_carga", metadata, autoload_with=engine)
-    estacion_table = Table("estaciones_carga", metadata, autoload_with=engine)
+    # Asegurarse de que los directorios 'datos' y 'eliminados' existan
+    os.makedirs('datos', exist_ok=True)
+    os.makedirs('eliminados', exist_ok=True)
 
     # Migrar datos de autos (principales y eliminados)
-    migrar_csv_a_db("datos/autos_electricos.csv", auto_table, conversion_tipo_auto)
-    migrar_csv_a_db("eliminados/autos_eliminados.csv", deleted_auto, conversion_tipo_auto)
+    migrar_csv_a_db("datos/autos_electricos.csv", AutoElectricoSQL, conversion_tipo_auto)
+    migrar_csv_a_db("eliminados/autos_eliminados.csv", AutoEliminadoSQL, conversion_tipo_auto)
 
     # Migrar datos de cargas (principales y eliminados)
-    migrar_csv_a_db("datos/dificultad_carga.csv", carga_table, conversion_tipo_carga)
-    migrar_csv_a_db("eliminados/dificultad_carga_eliminados.csv", deleted_carga, conversion_tipo_carga)
+    migrar_csv_a_db("datos/dificultad_carga.csv", CargaSQL, conversion_tipo_carga)
+    # Nota: Asegúrate de que este CSV exista si lo usas
+    migrar_csv_a_db("eliminados/dificultad_carga_eliminados.csv", CargaEliminadaSQL, conversion_tipo_carga)
 
     # Migrar datos de estaciones (principales y eliminados)
-    migrar_csv_a_db("datos/estaciones_carga.csv", estacion_table, conversion_tipo_estacion)
-    migrar_csv_a_db("eliminados/estaciones_eliminadas.csv", deleted_estacion, conversion_tipo_estacion)
-
-    logger.info("Proceso de migración completado exitosamente")
-
+    migrar_csv_a_db("datos/estaciones_carga.csv", EstacionSQL, conversion_tipo_estacion)
+    # Nota: Asegúrate de que este CSV exista si lo usas
+    migrar_csv_a_db("eliminados/estaciones_eliminadas.csv", EstacionEliminadaSQL, conversion_tipo_estacion)
 
 if __name__ == "__main__":
     main()
