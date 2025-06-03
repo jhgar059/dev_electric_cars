@@ -7,10 +7,11 @@ chmod +x build.sh
 echo "Instalando dependencias de Python..."
 pip install -r requirements.txt
 
-# Crear directorio para archivos CSV si no existe
-echo "Creando directorios 'datos' y 'eliminados'..."
+# Crear directorios para archivos CSV y estáticos si no existen
+echo "Creando directorios 'datos', 'eliminados' y 'static/images'..."
 mkdir -p datos
 mkdir -p eliminados
+mkdir -p static/images # ¡Esta es la línea clave que faltaba!
 
 # Inicializar la base de datos automáticamente
 echo "Inicializando la base de datos..."
