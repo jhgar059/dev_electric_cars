@@ -32,9 +32,6 @@ ENV/
 *.swp
 *.swo
 
-# Archivos de datos locales
-datos/
-eliminados/
 
 # Logs
 *.log
