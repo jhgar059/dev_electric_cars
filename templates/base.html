@@ -238,6 +238,28 @@
             width: 100% !important;
             height: 100% !important;
         }
+            /* Estilos específicos para los contenedores de gráficos */
+        .chart-container-home {
+            position: relative;
+            height: 250px; /* Tamaño más pequeño para la home */
+            width: 100%;
+            margin: auto;
+            max-width: 400px; /* Para que no se estiren demasiado en pantallas grandes */
+        }
+
+        .chart-container-large {
+            position: relative;
+            height: 400px; /* Un tamaño más grande para la página de estadísticas */
+            width: 100%;
+            margin: auto;
+            max-width: 600px; /* Ajusta según tus preferencias */
+        }
+        /* Asegúrate de que los canvas dentro de estos contenedores sean flexibles */
+        .chart-container-home canvas,
+        .chart-container-large canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
     </style>
 </head>
 <body>
