@@ -45,22 +45,23 @@ def update_auto(db: Session, auto_id: int, auto: AutoElectrico):
 def delete_auto(db: Session, auto_id: int):
     db_auto = db.query(models.AutoElectricoSQL).filter(models.AutoElectricoSQL.id == auto_id).first()
     if db_auto:
-        # Mover a la tabla de eliminados
-        db_eliminado = models.AutoEliminadoSQL(**{
-            "id": db_auto.id, # Conservar el ID original si se quiere
-            "marca": db_auto.marca,
-            "modelo": db_auto.modelo,
-            "anio": db_auto.anio,
-            "capacidad_bateria_kwh": db_auto.capacidad_bateria_kwh,
-            "autonomia_km": db_auto.autonomia_km,
-            "disponible": db_auto.disponible,
-            "url_imagen": db_auto.url_imagen
-        })
+        # Crea una nueva instancia de AutoEliminadoSQL con los datos del auto a eliminar
+        # Se elimina el 'id=db_auto.id' para permitir que la base de datos genere un nuevo ID único
+        db_eliminado = models.AutoEliminadoSQL(
+            marca=db_auto.marca,
+            modelo=db_auto.modelo,
+            anio=db_auto.anio,
+            capacidad_bateria_kwh=db_auto.capacidad_bateria_kwh,
+            autonomia_km=db_auto.autonomia_km,
+            disponible=db_auto.disponible,
+            url_imagen=db_auto.url_imagen
+        )
         db.add(db_eliminado)
         db.delete(db_auto)
         db.commit()
         return db_auto
     return None
+
 
 def get_average_autonomy(db: Session) -> Optional[float]:
     """Calcula la autonomía promedio de todos los autos eléctricos."""
@@ -104,18 +105,18 @@ def update_carga(db: Session, carga_id: int, carga: CargaActualizada):
 def delete_carga(db: Session, carga_id: int):
     db_carga = db.query(models.CargaSQL).filter(models.CargaSQL.id == carga_id).first()
     if db_carga:
-        # Mover a la tabla de eliminados
-        db_eliminado = models.CargaEliminadaSQL(**{
-            "id": db_carga.id, # Conservar el ID original
-            "modelo": db_carga.modelo,
-            "tipo_autonomia": db_carga.tipo_autonomia,
-            "autonomia_km": db_carga.autonomia_km,
-            "consumo_kwh_100km": db_carga.consumo_kwh_100km,
-            "tiempo_carga_horas": db_carga.tiempo_carga_horas,
-            "dificultad_carga": db_carga.dificultad_carga,
-            "requiere_instalacion_domestica": db_carga.requiere_instalacion_domestica,
-            "url_imagen": db_carga.url_imagen
-        })
+        # Crea una nueva instancia de CargaEliminadaSQL con los datos de la carga a eliminar
+        # Se elimina el 'id=db_carga.id' para permitir que la base de datos genere un nuevo ID único
+        db_eliminado = models.CargaEliminadaSQL(
+            modelo_auto=db_carga.modelo_auto,
+            tipo_autonomia=db_carga.tipo_autonomia,
+            autonomia_km_real=db_carga.autonomia_km_real,
+            consumo_kwh_100km=db_carga.consumo_kwh_100km,
+            tiempo_carga_horas=db_carga.tiempo_carga_horas,
+            dificultad_carga=db_carga.dificultad_carga,
+            requiere_instalacion_domestica=db_carga.requiere_instalacion_domestica,
+            url_imagen=db_carga.url_imagen
+        )
         db.add(db_eliminado)
         db.delete(db_carga)
         db.commit()
@@ -158,20 +159,20 @@ def update_estacion(db: Session, estacion_id: int, estacion: EstacionActualizada
 def delete_estacion(db: Session, estacion_id: int):
     db_estacion = db.query(models.EstacionSQL).filter(models.EstacionSQL.id == estacion_id).first()
     if db_estacion:
-        # Mover a la tabla de eliminados
-        db_eliminado = models.EstacionEliminadaSQL(**{
-            "id": db_estacion.id, # Conservar el ID original
-            "nombre": db_estacion.nombre,
-            "ubicacion": db_estacion.ubicacion,
-            "tipo_conector": db_estacion.tipo_conector,
-            "potencia_kw": db_estacion.potencia_kw,
-            "num_conectores": db_estacion.num_conectores,
-            "acceso_publico": db_estacion.acceso_publico,
-            "horario_apertura": db_estacion.horario_apertura,
-            "coste_por_kwh": db_estacion.coste_por_kwh,
-            "operador": db_estacion.operador,
-            "url_imagen": db_estacion.url_imagen
-        })
+        # Crea una nueva instancia de EstacionEliminadaSQL con los datos de la estación a eliminar
+        # Se elimina el 'id=db_estacion.id' para permitir que la base de datos genere un nuevo ID único
+        db_eliminado = models.EstacionEliminadaSQL(
+            nombre=db_estacion.nombre,
+            ubicacion=db_estacion.ubicacion,
+            tipo_conector=db_estacion.tipo_conector,
+            potencia_kw=db_estacion.potencia_kw,
+            num_conectores=db_estacion.num_conectores,
+            acceso_publico=db_estacion.acceso_publico,
+            horario_apertura=db_estacion.horario_apertura,
+            coste_por_kwh=db_estacion.coste_por_kwh,
+            operador=db_estacion.operador,
+            url_imagen=db_estacion.url_imagen
+        )
         db.add(db_eliminado)
         db.delete(db_estacion)
         db.commit()
