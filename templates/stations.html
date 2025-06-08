@@ -6,7 +6,7 @@
 <div class="container my-5">
     <h1 class="section-title">Gestión de Estaciones de Carga</h1>
 
-    <div class="info-block mb-5 fade-in">
+    <div class="info-block mb-5">
         <h2 class="h4 text-primary mb-3"><i class="fas fa-plus-circle me-2"></i>Registrar Nueva Estación / Actualizar Existente</h2>
         <form id="estacionForm" onsubmit="submitEstacionForm(event)">
             <div class="mb-3">
@@ -16,94 +16,72 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="nombre" class="form-label">Nombre de la Estación</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" required minlength="2" maxlength="50" pattern="[A-Za-z0-9\s]+" title="Solo letras, números y espacios." oninput="validateInput(this)">
-                    <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Mín. 2 caracteres, Máx. 50 caracteres. Solo letras y números.</small>
+                    <input type="text" class="form-control" id="nombre" name="nombre" required>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="ubicacion" class="form-label">Ubicación</label>
-                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" required minlength="5" maxlength="100" pattern="[A-Za-z0-9\s,.-]+" title="Solo letras, números, espacios, comas, puntos y guiones." oninput="validateInput(this)">
-                    <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Mín. 5 caracteres, Máx. 100 caracteres. Dirección completa.</small>
+                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" required>
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="tipo_conector" class="form-label">Tipo de Conector</label>
-                    <select class="form-select" id="tipo_conector" name="tipo_conector" required oninput="validateInput(this)">
+                    <select class="form-select" id="tipo_conector" name="tipo_conector" required>
                         <option value="">Seleccione...</option>
                         <option value="CCS">CCS</option>
                         <option value="CHAdeMO">CHAdeMO</option>
                         <option value="Tipo 2">Tipo 2</option>
                         <option value="Schuko">Schuko</option>
                         <option value="Tesla">Tesla</option>
-                        <option value="Otro">Otro</option>
                     </select>
-                    <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Seleccione un tipo de conector válido.</small>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="potencia_kw" class="form-label">Potencia (kW)</label>
-                    <input type="number" step="0.1" class="form-control" id="potencia_kw" name="potencia_kw" required min="1" max="500" oninput="validateInput(this)">
-                    <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Debe ser un número entre 1.0 y 500.0 kW.</small>
+                    <input type="number" step="0.1" class="form-control" id="potencia_kw" name="potencia_kw" min="3.7" max="350" required>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="num_conectores" class="form-label">Número de Conectores</label>
-                    <input type="number" class="form-control" id="num_conectores" name="num_conectores" required min="1" max="50" oninput="validateInput(this)">
-                    <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Debe ser un número entero entre 1 y 50.</small>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="acceso_publico" class="form-label">¿Acceso Público?</label>
-                    <select class="form-select" id="acceso_publico" name="acceso_publico" required oninput="validateInput(this)">
-                        <option value="">Seleccione...</option>
-                        <option value="true">Sí</option>
-                        <option value="false">No</option>
-                    </select>
-                    <div class="invalid-feedback"></div>
+                    <input type="number" class="form-control" id="num_conectores" name="num_conectores" min="1" max="20" required>
                 </div>
             </div>
             <div class="row">
+                <div class="col-md-6 mb-3 form-check d-flex align-items-center">
+                    <input type="checkbox" class="form-check-input mt-0" id="acceso_publico" name="acceso_publico">
+                    <label class="form-check-label ms-2" for="acceso_publico">Acceso Público</label>
+                </div>
                 <div class="col-md-6 mb-3">
                     <label for="horario_apertura" class="form-label">Horario de Apertura</label>
-                    <input type="text" class="form-control" id="horario_apertura" name="horario_apertura" required minlength="3" maxlength="50" oninput="validateInput(this)">
-                    <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Mín. 3 caracteres, Máx. 50 caracteres (ej. "24/7", "9 AM - 6 PM").</small>
+                    <input type="text" class="form-control" id="horario_apertura" name="horario_apertura" placeholder="Ej: 24/7, 9am-5pm" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="coste_por_kwh" class="form-label">Coste por kWh (€)</label>
+                    <input type="number" step="0.01" class="form-control" id="coste_por_kwh" name="coste_por_kwh" min="0" max="1" required>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="coste_por_kwh" class="form-label">Coste por kWh</label>
-                    <input type="number" step="0.01" class="form-control" id="coste_por_kwh" name="coste_por_kwh" required min="0" max="2" oninput="validateInput(this)">
-                    <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Debe ser un número entre 0.00 y 2.00.</small>
+                    <label for="operador" class="form-label">Operador</label>
+                    <input type="text" class="form-control" id="operador" name="operador" required>
                 </div>
             </div>
             <div class="mb-3">
-                <label for="operador" class="form-label">Operador</label>
-                <input type="text" class="form-control" id="operador" name="operador" required minlength="2" maxlength="50" pattern="[A-Za-z0-9\s]+" title="Solo letras, números y espacios." oninput="validateInput(this)">
-                <div class="invalid-feedback"></div>
-                <small class="form-text text-muted">Mín. 2 caracteres, Máx. 50 caracteres. Solo letras y números.</small>
+                <label for="url_imagen_estacion" class="form-label">URL de Imagen (Opcional)</label>
+                <input type="text" class="form-control" id="url_imagen_estacion" name="url_imagen" placeholder="Ej: /static/images/mi_estacion.jpg">
             </div>
-            <div class="mb-3">
-                <label for="url_imagen_file_estacion" class="form-label">Imagen de la Estación</label>
-                <input type="file" class="form-control" id="url_imagen_file_estacion" name="url_imagen_file_estacion" accept="image/*" onchange="previewImage(event, 'imagePreviewEstacion'); validateImage(this);">
-                <input type="hidden" id="url_imagen_estacion" name="url_imagen">
-                <div class="invalid-feedback"></div>
-                <small class="form-text text-muted">Formatos permitidos: JPG, PNG, GIF. Máx. 5MB.</small>
-                <img id="imagePreviewEstacion" src="#" alt="Vista previa de la imagen" class="img-thumbnail mt-2" style="display: none; max-width: 200px; max-height: 200px;">
+            <div class="mb-4">
+                <label for="imageUploadEstacion" class="form-label">Subir Imagen (Opcional)</label>
+                <input type="file" class="form-control" id="imageUploadEstacion" accept="image/*" onchange="uploadAndSetImageUrl(event, 'url_imagen_estacion')">
+                <small class="form-text text-muted">Selecciona un archivo de imagen para subirlo.</small>
             </div>
-
-            <button type="submit" class="btn btn-primary me-2"><i class="fas fa-save me-2"></i>Guardar Estación</button>
-            <button type="button" class="btn btn-secondary" onclick="clearEstacionForm()"><i class="fas fa-eraser me-2"></i>Limpiar Formulario</button>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Guardar Estación</button>
+                <button type="button" class="btn btn-secondary" onclick="clearEstacionForm()"><i class="fas fa-redo me-2"></i>Limpiar Formulario</button>
+            </div>
         </form>
     </div>
 
-    <hr class="my-5">
-
-    <div class="info-block fade-in">
-        <h2 class="h4 text-success mb-3"><i class="fas fa-list-alt me-2"></i>Listado de Estaciones de Carga</h2>
+    <div class="info-block">
+        <h2 class="h4 text-success mb-3"><i class="fas fa-list me-2"></i>Listado de Estaciones de Carga</h2>
         <div class="table-responsive">
             <table class="table table-striped table-hover">
                 <thead>
@@ -123,14 +101,11 @@
                     </tr>
                 </thead>
                 <tbody id="estacionesTableBody">
-                    <tr>
-                        <td colspan="12" class="text-center text-muted">Cargando estaciones...</td>
-                    </tr>
-                </tbody>
+                    </tbody>
             </table>
         </div>
         <div id="noEstacionesMessage" class="text-center text-muted py-4" style="display: none;">
-            No hay estaciones de carga registradas. ¡Comienza agregando una!
+            No hay estaciones de carga registradas.
         </div>
     </div>
 </div>
@@ -138,163 +113,46 @@
 
 {% block scripts %}
 <script>
-    // Función de validación genérica para inputs de formulario
-    function validateInput(input) {
-        if (input.checkValidity()) {
-            input.classList.remove('is-invalid');
-            input.classList.add('is-valid');
-            input.nextElementSibling.innerText = ''; // Limpiar mensaje de error
-        } else {
-            input.classList.remove('is-valid');
-            input.classList.add('is-invalid');
-            input.nextElementSibling.innerText = input.validationMessage || 'Valor no válido.';
-        }
-    }
-
-    // Función para validar la imagen (tipo y tamaño)
-    function validateImage(input) {
-        const file = input.files[0];
-        const feedbackDiv = input.nextElementSibling; // El div invalid-feedback
+    async function uploadAndSetImageUrl(event, inputId) {
+        const file = event.target.files[0];
         if (!file) {
-            input.classList.remove('is-valid', 'is-invalid');
-            feedbackDiv.innerText = '';
-            return true;
-        }
-
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        const maxSizeMb = 5;
-        const maxSizeBytes = maxSizeMb * 1024 * 1024;
-
-        if (!allowedTypes.includes(file.type)) {
-            input.classList.add('is-invalid');
-            feedbackDiv.innerText = 'Tipo de archivo no permitido. Solo JPG, PNG, GIF.';
-            return false;
-        }
-
-        if (file.size > maxSizeBytes) {
-            input.classList.add('is-invalid');
-            feedbackDiv.innerText = `El tamaño de la imagen excede los ${maxSizeMb}MB.`;
-            return false;
-        }
-
-        input.classList.remove('is-invalid');
-        input.classList.add('is-valid');
-        feedbackDiv.innerText = '';
-        return true;
-    }
-
-    async function submitEstacionForm(event) {
-        event.preventDefault();
-
-        const form = document.getElementById('estacionForm');
-        if (!form.checkValidity()) {
-            form.classList.add('was-validated');
-            alert('Por favor, corrige los errores en el formulario antes de enviar.');
+            document.getElementById(inputId).value = '';
             return;
         }
-
-        const imageFileInput = document.getElementById('url_imagen_file_estacion');
-        if (imageFileInput.files.length > 0 && !validateImage(imageFileInput)) {
-            alert('Por favor, corrige los errores en la imagen antes de enviar.');
-            return;
-        }
-
-        const estacionId = document.getElementById('estacionId').value;
-        const isUpdate = estacionId !== '';
-        let url = '/estaciones/';
-        let method = 'POST';
 
         const formData = new FormData();
-        formData.append('nombre', document.getElementById('nombre').value);
-        formData.append('ubicacion', document.getElementById('ubicacion').value);
-        formData.append('tipo_conector', document.getElementById('tipo_conector').value);
-        formData.append('potencia_kw', document.getElementById('potencia_kw').value);
-        formData.append('num_conectores', document.getElementById('num_conectores').value);
-        formData.append('acceso_publico', document.getElementById('acceso_publico').value);
-        formData.append('horario_apertura', document.getElementById('horario_apertura').value);
-        formData.append('coste_por_kwh', document.getElementById('coste_por_kwh').value);
-        formData.append('operador', document.getElementById('operador').value);
-
-        let imageUrl = document.getElementById('url_imagen_estacion').value;
-
-        if (imageFileInput.files.length > 0) {
-            const imageFile = imageFileInput.files[0];
-            const imageFormData = new FormData();
-            imageFormData.append('file', imageFile);
-
-            try {
-                const uploadResponse = await fetch('/upload_image/', {
-                    method: 'POST',
-                    body: imageFormData
-                });
-
-                if (!uploadResponse.ok) {
-                    const errorData = await uploadResponse.json();
-                    throw new Error(errorData.detail || 'Error al subir la imagen.');
-                }
-                const uploadResult = await uploadResponse.json();
-                imageUrl = uploadResult.url;
-            } catch (error) {
-                console.error('Error al subir la imagen:', error);
-                alert('Error al subir la imagen: ' + error.message);
-                return;
-            }
-        }
-        formData.append('url_imagen', imageUrl);
-
-        const estacionData = {
-            nombre: formData.get('nombre'),
-            ubicacion: formData.get('ubicacion'),
-            tipo_conector: formData.get('tipo_conector'),
-            potencia_kw: parseFloat(formData.get('potencia_kw')),
-            num_conectores: parseInt(formData.get('num_conectores')),
-            acceso_publico: formData.get('acceso_publico') === 'true',
-            horario_apertura: formData.get('horario_apertura'),
-            coste_por_kwh: parseFloat(formData.get('coste_por_kwh')),
-            operador: formData.get('operador'),
-            url_imagen: formData.get('url_imagen')
-        };
-
-        if (isUpdate) {
-            url = `/estaciones/${estacionId}`;
-            method = 'PUT';
-        }
+        formData.append('file', file);
 
         try {
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(estacionData)
+            const response = await fetch('/upload_image/', {
+                method: 'POST',
+                body: formData
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.detail || 'Error al procesar la estación.');
+                throw new Error(errorData.detail || 'Error al subir la imagen.');
             }
 
-            alert(`Estación ${isUpdate ? 'actualizada' : 'registrada'} exitosamente!`);
+            const data = await response.json();
+            document.getElementById(inputId).value = data.url; // Establece la URL devuelta por el backend
+            alert('Imagen subida exitosamente!');
         } catch (error) {
-            console.error('Error al procesar estación:', error);
-            alert('Error al procesar estación: ' + error.message);
-            return;
+            console.error('Error al subir imagen:', error);
+            alert('Error al subir imagen: ' + error.message);
+            document.getElementById(inputId).value = ''; // Limpiar el campo si falla
         }
-
-        clearEstacionForm();
-        loadEstaciones();
-        form.classList.remove('was-validated');
     }
 
     async function loadEstaciones() {
         try {
             const response = await fetch('/estaciones/');
             if (!response.ok) {
-                throw new Error('Error al obtener estaciones: ' + response.statusText);
+                throw new Error('No se pudieron cargar las estaciones de carga.');
             }
             const estaciones = await response.json();
             const tableBody = document.getElementById('estacionesTableBody');
-            tableBody.innerHTML = '';
+            tableBody.innerHTML = ''; // Limpiar tabla
 
             if (estaciones.length === 0) {
                 document.getElementById('noEstacionesMessage').style.display = 'block';
@@ -305,7 +163,7 @@
                         <tr>
                             <td>${estacion.id}</td>
                             <td>
-                                ${estacion.url_imagen ? `<img src="${estacion.url_imagen}" alt="Imagen de ${estacion.nombre}" class="img-thumbnail img-thumbnail-square">` : '<i class="fas fa-image text-muted"></i>'}
+                                ${estacion.url_imagen ? `<img src="${estacion.url_imagen}" alt="Imagen de ${estacion.nombre}" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">` : '<i class="fas fa-image text-muted" style="font-size: 2rem;"></i>'}
                             </td>
                             <td>${estacion.nombre}</td>
                             <td>${estacion.ubicacion}</td>
@@ -319,18 +177,73 @@
                             <td>${estacion.coste_por_kwh}</td>
                             <td>${estacion.operador}</td>
                             <td>
-                                <button class="btn btn-sm btn-info me-1" onclick="editEstacion(${estacion.id})"><i class="fas fa-edit"></i></button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteEstacion(${estacion.id})"><i class="fas fa-trash-alt"></i></button>
+                                <button class="btn btn-warning btn-sm me-2" onclick="editEstacion(${estacion.id})"><i class="fas fa-edit"></i> Editar</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteEstacion(${estacion.id})"><i class="fas fa-trash"></i> Eliminar</button>
                             </td>
                         </tr>
                     `;
-                    tableBody.insertAdjacentHTML('beforeend', row);
+                    tableBody.innerHTML += row;
                 });
             }
         } catch (error) {
             console.error('Error al cargar estaciones:', error);
-            const tableBody = document.getElementById('estacionesTableBody');
-            tableBody.innerHTML = `<tr><td colspan="12" class="text-center text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar estaciones: ${error.message}</td></tr>`;
+            document.getElementById('estacionesTableBody').innerHTML = `<tr><td colspan="12" class="text-center text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar las estaciones: ${error.message}</td></tr>`;
+            document.getElementById('noEstacionesMessage').style.display = 'none';
+        }
+    }
+
+    async function submitEstacionForm(event) {
+        event.preventDefault();
+        const estacionId = document.getElementById('estacionId').value;
+        const form = document.getElementById('estacionForm');
+        const formData = new FormData(form);
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+            if (key === 'id' && !estacionId) continue; // Excluir ID si es creación
+            if (key === 'acceso_publico') {
+                data[key] = value === 'on';
+            } else if (key === 'potencia_kw' || key === 'num_conectores' || key === 'coste_por_kwh') {
+                data[key] = parseFloat(value);
+            } else {
+                data[key] = value;
+            }
+        }
+
+        const imageUrlInput = document.getElementById('url_imagen_estacion').value;
+        if (imageUrlInput) {
+            data['url_imagen'] = imageUrlInput;
+        } else {
+             data['url_imagen'] = null;
+        }
+
+        let url = '/estaciones/';
+        let method = 'POST';
+
+        if (estacionId) { // Si hay un ID, es una actualización
+            url = `/estaciones/${estacionId}`;
+            method = 'PUT';
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error en la operación.');
+            }
+
+            alert(`Estación ${estacionId ? 'actualizada' : 'creada'} exitosamente!`);
+            clearEstacionForm();
+            loadEstaciones(); // Recargar la tabla
+        } catch (error) {
+            console.error('Error al guardar estación:', error);
+            alert('Error al guardar estación: ' + error.message);
         }
     }
 
@@ -338,7 +251,7 @@
         try {
             const response = await fetch(`/estaciones/${estacionId}`);
             if (!response.ok) {
-                throw new Error('Error al obtener estación para edición.');
+                throw new Error('No se pudo cargar la estación para edición.');
             }
             const estacion = await response.json();
 
@@ -348,30 +261,11 @@
             document.getElementById('tipo_conector').value = estacion.tipo_conector;
             document.getElementById('potencia_kw').value = estacion.potencia_kw;
             document.getElementById('num_conectores').value = estacion.num_conectores;
-            document.getElementById('acceso_publico').value = estacion.acceso_publico.toString();
+            document.getElementById('acceso_publico').checked = estacion.acceso_publico;
             document.getElementById('horario_apertura').value = estacion.horario_apertura;
             document.getElementById('coste_por_kwh').value = estacion.coste_por_kwh;
             document.getElementById('operador').value = estacion.operador;
             document.getElementById('url_imagen_estacion').value = estacion.url_imagen || '';
-
-            const imagePreview = document.getElementById('imagePreviewEstacion');
-            if (estacion.url_imagen) {
-                imagePreview.src = estacion.url_imagen;
-                imagePreview.style.display = 'block';
-            } else {
-                imagePreview.src = '';
-                imagePreview.style.display = 'none';
-            }
-            document.getElementById('url_imagen_file_estacion').value = '';
-
-            document.getElementById('estacionForm').classList.remove('was-validated');
-            document.querySelectorAll('#estacionForm .form-control').forEach(input => {
-                input.classList.remove('is-valid', 'is-invalid');
-                if (input.nextElementSibling && input.nextElementSibling.classList.contains('invalid-feedback')) {
-                    input.nextElementSibling.innerText = '';
-                }
-            });
-
         } catch (error) {
             console.error('Error al editar estación:', error);
             alert('Error al cargar datos de la estación para edición: ' + error.message);
@@ -405,18 +299,6 @@
         document.getElementById('estacionForm').reset();
         document.getElementById('estacionId').value = '';
         document.getElementById('url_imagen_estacion').value = '';
-        document.getElementById('url_imagen_file_estacion').value = '';
-
-        document.getElementById('imagePreviewEstacion').src = '';
-        document.getElementById('imagePreviewEstacion').style.display = 'none';
-
-        document.getElementById('estacionForm').classList.remove('was-validated');
-        document.querySelectorAll('#estacionForm .form-control').forEach(input => {
-            input.classList.remove('is-valid', 'is-invalid');
-            if (input.nextElementSibling && input.nextElementSibling.classList.contains('invalid-feedback')) {
-                input.nextElementSibling.innerText = '';
-            }
-        });
     }
 
     // Cargar estaciones al cargar la página inicialmente

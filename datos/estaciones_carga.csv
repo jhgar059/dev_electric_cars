@@ -1,4 +1,4 @@
 id,nombre,ubicacion,tipo_conector,potencia_kw,num_conectores,acceso_publico,horario_apertura,coste_por_kwh,operador
-2,Estación Unicentro,Centro Comercial Unicentro Cra 15 # 124-30. Bogotá,Tipo 2,22.0,12,True,09:00-21:00,0.3,Celsia
-4,Electrolinera Salitre,Centro Comercial Gran Estación Av. Calle 26 # 62-47. Bogotá,CHAdeMO,100.0,6,True,09:00-22:00,0.38,Terpel
-5,Carga Rápida Aeropuerto,Aeropuerto El Dorado Av. Calle 26 # 103-9. Bogotá,CCS,350.0,4,True,24/7,0.45,OPAIN
+1,Estación Unicentro,Centro Comercial Unicentro Cra 15 # 124-30. Bogotá,Tipo 2,22.0,12,True,09:00-21:00,0.3,Celsia
+2,Electrolinera Salitre,Centro Comercial Gran Estación Av. Calle 26 # 62-47. Bogotá,CHAdeMO,100.0,6,True,09:00-22:00,0.38,Terpel
+3,Carga Rápida Aeropuerto,Aeropuerto El Dorado Av. Calle 26 # 103-9. Bogotá,CCS,350.0,4,True,24/7,0.45,OPAIN
