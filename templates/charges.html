@@ -18,79 +18,75 @@
                     <label for="cargaModelo" class="form-label">Modelo de Auto</label>
                     <input type="text" class="form-control" id="cargaModelo" name="modelo" required minlength="1" maxlength="50" pattern="[A-Za-z0-9\s-]+" title="Solo letras, números, espacios y guiones." oninput="validateInput(this)">
                     <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Modelo de auto al que se refiere este registro de carga.</small>
+                    <small class="form-text text-muted">Mín. 1 caracter, Máx. 50 caracteres. Solo letras, números, espacios y guiones.</small>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="tipoAutonomia" class="form-label">Tipo de Autonomía</label>
-                    <select class="form-select" id="tipoAutonomia" name="tipo_autonomia" required onchange="showAutonomyDefinition(this.value)">
-                        <option value="">Seleccione un tipo</option>
-                        <option value="WLTP">WLTP (Worldwide Harmonized Light Vehicles Test Procedure)</option>
-                        <option value="EPA">EPA (Environmental Protection Agency)</option>
-                        <option value="NEDC">NEDC (New European Driving Cycle)</option>
-                        <option value="Otra">Otra (Especificar en notas)</option>
+                    <label for="tipo_autonomia" class="form-label">Tipo de Autonomía</label>
+                    <select class="form-select" id="tipo_autonomia" name="tipo_autonomia" required oninput="validateInput(this)">
+                        <option value="">Seleccione...</option>
+                        <option value="WLTP">WLTP</option>
+                        <option value="EPA">EPA</option>
+                        <option value="NEDC">NEDC</option>
+                        <option value="Otra">Otra</option>
                     </select>
                     <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Estándar bajo el cual se mide la autonomía.</small>
-                    <div id="autonomyDefinition" class="alert alert-info mt-2" style="display: none;"></div>
+                    <small class="form-text text-muted">Seleccione un tipo de autonomía válido.</small>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="autonomiaKm" class="form-label">Autonomía (km)</label>
-                    <input type="number" step="0.1" class="form-control" id="autonomiaKm" name="autonomia_km" required min="1" max="1000" title="Valor numérico positivo de la autonomía en kilómetros." oninput="validateInput(this)">
+                    <label for="consumo_kwh_100km" class="form-label">Consumo (kWh/100km)</label>
+                    <input type="number" step="0.1" class="form-control" id="consumo_kwh_100km" name="consumo_kwh_100km" required min="0.1" max="50" oninput="validateInput(this)">
                     <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Autonomía estimada del auto en kilómetros.</small>
+                    <small class="form-text text-muted">Debe ser un número entre 0.1 y 50.0 kWh/100km.</small>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="consumoKwh" class="form-label">Consumo (kWh/100km)</label>
-                    <input type="number" step="0.1" class="form-control" id="consumoKwh" name="consumo_kwh_100km" required min="1" max="50" title="Consumo energético en kWh por cada 100 kilómetros." oninput="validateInput(this)">
+                    <label for="tiempo_carga_horas" class="form-label">Tiempo de Carga (horas)</label>
+                    <input type="number" step="0.1" class="form-control" id="tiempo_carga_horas" name="tiempo_carga_horas" required min="0.1" max="48" oninput="validateInput(this)">
                     <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Consumo de energía del auto en kWh cada 100 km.</small>
+                    <small class="form-text text-muted">Debe ser un número entre 0.1 y 48.0 horas.</small>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="tiempoCarga" class="form-label">Tiempo de Carga (horas)</label>
-                    <input type="number" step="0.1" class="form-control" id="tiempoCarga" name="tiempo_carga_horas" required min="0.1" max="48" title="Tiempo estimado para una carga completa en horas." oninput="validateInput(this)">
-                    <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Tiempo estimado para una carga completa en horas.</small>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="dificultadCarga" class="form-label">Dificultad de Carga</label>
-                    <select class="form-select" id="dificultadCarga" name="dificultad_carga" required>
-                        <option value="">Seleccione la dificultad</option>
+                    <label for="dificultad_carga" class="form-label">Dificultad de Carga</label>
+                    <select class="form-select" id="dificultad_carga" name="dificultad_carga" required oninput="validateInput(this)">
+                        <option value="">Seleccione...</option>
                         <option value="baja">Baja</option>
                         <option value="media">Media</option>
                         <option value="alta">Alta</option>
                     </select>
                     <div class="invalid-feedback"></div>
-                    <small class="form-text text-muted">Percepción general de la dificultad de cargar el auto.</small>
+                    <small class="form-text text-muted">Seleccione un nivel de dificultad.</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="requiere_instalacion_domestica" class="form-label">¿Requiere Instalación Doméstica?</label>
+                    <select class="form-select" id="requiere_instalacion_domestica" name="requiere_instalacion_domestica" required oninput="validateInput(this)">
+                        <option value="">Seleccione...</option>
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </select>
+                    <div class="invalid-feedback"></div>
                 </div>
             </div>
-            <div class="mb-3 form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="requiereInstalacion" name="requiere_instalacion_domestica">
-                <label class="form-check-label" for="requiereInstalacion">Requiere Instalación Doméstica Especial</label>
-                <small class="form-text text-muted">Marque si se necesita una instalación eléctrica especial en el hogar.</small>
-            </div>
-
             <div class="mb-3">
-                <label for="url_imagen_file_carga" class="form-label">Imagen (opcional)</label>
-                <input type="file" class="form-control" id="url_imagen_file_carga" name="url_imagen_file" accept="image/*" onchange="previewImage(event, 'imagePreviewCarga')">
+                <label for="url_imagen_file_carga" class="form-label">Imagen de Carga</label>
+                <input type="file" class="form-control" id="url_imagen_file_carga" name="url_imagen_file_carga" accept="image/*" onchange="previewImage(event, 'imagePreviewCarga'); validateImage(this);">
                 <input type="hidden" id="url_imagen_carga" name="url_imagen">
-                <small class="form-text text-muted">Sube una imagen del auto o relacionada con la carga.</small>
-                <img id="imagePreviewCarga" src="" alt="Vista previa de imagen" class="img-thumbnail mt-2" style="max-width: 150px; display: none;">
+                <div class="invalid-feedback"></div>
+                <small class="form-text text-muted">Formatos permitidos: JPG, PNG, GIF. Máx. 5MB.</small>
+                <img id="imagePreviewCarga" src="#" alt="Vista previa de la imagen" class="img-thumbnail mt-2" style="display: none; max-width: 200px; max-height: 200px;">
             </div>
 
-            <button type="submit" class="btn btn-primary me-2"><i class="fas fa-save me-2"></i>Guardar Registro</button>
-            <button type="button" class="btn btn-secondary" onclick="clearCargaForm()"><i class="fas fa-redo me-2"></i>Limpiar Formulario</button>
+            <button type="submit" class="btn btn-primary me-2"><i class="fas fa-save me-2"></i>Guardar Registro de Carga</button>
+            <button type="button" class="btn btn-secondary" onclick="clearCargaForm()"><i class="fas fa-eraser me-2"></i>Limpiar Formulario</button>
         </form>
     </div>
 
-    <div class="info-block">
-        <h2 class="h4 text-success mb-3"><i class="fas fa-list me-2"></i>Listado de Registros de Carga</h2>
-        <div class="mb-3">
-            <input type="text" id="searchCarga" class="form-control" onkeyup="filterCargas()" placeholder="Buscar por modelo de auto...">
-        </div>
+    <hr class="my-5">
+
+    <div class="info-block fade-in">
+        <h2 class="h4 text-success mb-3"><i class="fas fa-list-alt me-2"></i>Listado de Registros de Dificultad de Carga</h2>
         <div class="table-responsive">
             <table class="table table-striped table-hover">
                 <thead>
@@ -99,7 +95,6 @@
                         <th>Imagen</th>
                         <th>Modelo Auto</th>
                         <th>Tipo Autonomía</th>
-                        <th>Autonomía (km)</th>
                         <th>Consumo (kWh/100km)</th>
                         <th>Tiempo Carga (horas)</th>
                         <th>Dificultad Carga</th>
@@ -108,11 +103,14 @@
                     </tr>
                 </thead>
                 <tbody id="cargasTableBody">
-                    </tbody>
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">Cargando registros de carga...</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
         <div id="noCargasMessage" class="text-center text-muted py-4" style="display: none;">
-            No hay registros de carga disponibles.
+            No hay registros de carga. ¡Comienza agregando uno!
         </div>
     </div>
 </div>
@@ -120,199 +118,194 @@
 
 {% block scripts %}
 <script>
-    const autonomyDefinitions = {
-        "WLTP": "El WLTP (Worldwide Harmonized Light Vehicles Test Procedure) es un estándar global para medir el consumo de combustible, las emisiones y la autonomía de los vehículos. Proporciona datos más realistas que el NEDC.",
-        "EPA": "La EPA (Environmental Protection Agency) de Estados Unidos utiliza un ciclo de prueba más estricto que el WLTP, que incluye aceleraciones y frenadas más agresivas, resultando generalmente en autonomías más bajas pero muy precisas para el mercado estadounidense.",
-        "NEDC": "El NEDC (New European Driving Cycle) es un ciclo de prueba antiguo y menos realista para medir la autonomía y las emisiones. Tiende a generar valores de autonomía optimistas que son difíciles de replicar en la conducción real.",
-        "Otra": "Cualquier otro estándar o método de medición de autonomía no incluido en las opciones principales. Se recomienda especificarlo en las notas adicionales si es relevante."
-    };
-
-    function showAutonomyDefinition(selectedOption) {
-        const definitionDiv = document.getElementById('autonomyDefinition');
-        if (autonomyDefinitions[selectedOption]) {
-            definitionDiv.innerText = autonomyDefinitions[selectedOption];
-            definitionDiv.style.display = 'block';
-        } else {
-            definitionDiv.style.display = 'none';
-            definitionDiv.innerText = '';
-        }
-    }
-
-    // Funciones de validación para inputs
+    // Función de validación genérica para inputs de formulario
     function validateInput(input) {
         if (input.checkValidity()) {
             input.classList.remove('is-invalid');
             input.classList.add('is-valid');
-            input.nextElementSibling.innerText = ''; // Clear custom error message
+            input.nextElementSibling.innerText = ''; // Limpiar mensaje de error
         } else {
             input.classList.remove('is-valid');
             input.classList.add('is-invalid');
-            input.nextElementSibling.innerText = input.validationMessage; // Show browser default error
+            input.nextElementSibling.innerText = input.validationMessage || 'Valor no válido.';
         }
+    }
+
+    // Función para validar la imagen (tipo y tamaño)
+    function validateImage(input) {
+        const file = input.files[0];
+        const feedbackDiv = input.nextElementSibling; // El div invalid-feedback
+        if (!file) {
+            input.classList.remove('is-valid', 'is-invalid');
+            feedbackDiv.innerText = '';
+            return true; // No hay archivo, no hay error de imagen
+        }
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        const maxSizeMb = 5;
+        const maxSizeBytes = maxSizeMb * 1024 * 1024;
+
+        if (!allowedTypes.includes(file.type)) {
+            input.classList.add('is-invalid');
+            feedbackDiv.innerText = 'Tipo de archivo no permitido. Solo JPG, PNG, GIF.';
+            return false;
+        }
+
+        if (file.size > maxSizeBytes) {
+            input.classList.add('is-invalid');
+            feedbackDiv.innerText = `El tamaño de la imagen excede los ${maxSizeMb}MB.`;
+            return false;
+        }
+
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+        feedbackDiv.innerText = '';
+        return true;
     }
 
     async function submitCargaForm(event) {
-        event.preventDefault(); // Evitar el envío de formulario por defecto
+        event.preventDefault();
 
         const form = document.getElementById('cargaForm');
-        // Validar el formulario con Bootstrap
         if (!form.checkValidity()) {
             form.classList.add('was-validated');
+            alert('Por favor, corrige los errores en el formulario antes de enviar.');
             return;
         }
-        form.classList.remove('was-validated'); // Limpiar validación si es válido
+
+        const imageFileInput = document.getElementById('url_imagen_file_carga');
+        if (imageFileInput.files.length > 0 && !validateImage(imageFileInput)) {
+            alert('Por favor, corrige los errores en la imagen antes de enviar.');
+            return;
+        }
 
         const cargaId = document.getElementById('cargaId').value;
-        const modeloAuto = document.getElementById('cargaModelo').value;
-        const tipoAutonomia = document.getElementById('tipoAutonomia').value;
-        const autonomiaKm = parseFloat(document.getElementById('autonomiaKm').value);
-        const consumoKwh = parseFloat(document.getElementById('consumoKwh').value);
-        const tiempoCarga = parseFloat(document.getElementById('tiempoCarga').value);
-        const dificultadCarga = document.getElementById('dificultadCarga').value;
-        const requiereInstalacion = document.getElementById('requiereInstalacion').checked;
-        const urlImagenInput = document.getElementById('url_imagen_carga'); // Hidden input
-        const fileInput = document.getElementById('url_imagen_file_carga');
-        let urlImagen = urlImagenInput.value;
+        const isUpdate = cargaId !== '';
+        let url = '/cargas/';
+        let method = 'POST';
 
-        // Si hay un nuevo archivo seleccionado, subirlo primero
-        if (fileInput.files.length > 0) {
-            const uploadedUrl = await uploadImage(fileInput.files[0], 'carga');
-            if (uploadedUrl) {
-                urlImagen = uploadedUrl;
-            } else {
-                alert('Error al subir la imagen. Por favor, inténtelo de nuevo.');
+        const formData = new FormData();
+        formData.append('modelo', document.getElementById('cargaModelo').value);
+        formData.append('tipo_autonomia', document.getElementById('tipo_autonomia').value);
+        formData.append('consumo_kwh_100km', document.getElementById('consumo_kwh_100km').value);
+        formData.append('tiempo_carga_horas', document.getElementById('tiempo_carga_horas').value);
+        formData.append('dificultad_carga', document.getElementById('dificultad_carga').value);
+        formData.append('requiere_instalacion_domestica', document.getElementById('requiere_instalacion_domestica').value);
+
+        let imageUrl = document.getElementById('url_imagen_carga').value;
+
+        if (imageFileInput.files.length > 0) {
+            const imageFile = imageFileInput.files[0];
+            const imageFormData = new FormData();
+            imageFormData.append('file', imageFile);
+
+            try {
+                const uploadResponse = await fetch('/upload_image/', {
+                    method: 'POST',
+                    body: imageFormData
+                });
+
+                if (!uploadResponse.ok) {
+                    const errorData = await uploadResponse.json();
+                    throw new Error(errorData.detail || 'Error al subir la imagen.');
+                }
+                const uploadResult = await uploadResponse.json();
+                imageUrl = uploadResult.url;
+            } catch (error) {
+                console.error('Error al subir la imagen:', error);
+                alert('Error al subir la imagen: ' + error.message);
                 return;
             }
         }
+        formData.append('url_imagen', imageUrl);
 
         const cargaData = {
-            modelo_auto: modeloAuto,
-            tipo_autonomia: tipoAutonomia,
-            autonomia_km: autonomiaKm,
-            consumo_kwh_100km: consumoKwh,
-            tiempo_carga_horas: tiempoCarga,
-            dificultad_carga: dificultadCarga,
-            requiere_instalacion_domestica: requiereInstalacion,
-            url_imagen: urlImagen || null
+            modelo: formData.get('modelo'),
+            tipo_autonomia: formData.get('tipo_autonomia'),
+            consumo_kwh_100km: parseFloat(formData.get('consumo_kwh_100km')),
+            tiempo_carga_horas: parseFloat(formData.get('tiempo_carga_horas')),
+            dificultad_carga: formData.get('dificultad_carga'),
+            requiere_instalacion_domestica: formData.get('requiere_instalacion_domestica') === 'true',
+            url_imagen: formData.get('url_imagen')
         };
 
-        try {
-            let response;
-            if (cargaId) {
-                // Actualizar registro existente
-                response = await fetch(`/cargas/${cargaId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(cargaData),
-                });
-            } else {
-                // Crear nuevo registro
-                response = await fetch('/cargas/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(cargaData),
-                });
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Error al guardar el registro de carga.');
-            }
-
-            alert('Registro de carga guardado exitosamente!');
-            clearCargaForm();
-            loadCargas();
-        } catch (error) {
-            console.error('Error al guardar carga:', error);
-            alert('Error al guardar registro de carga: ' + error.message);
+        if (isUpdate) {
+            url = `/cargas/${cargaId}`;
+            method = 'PUT';
         }
-    }
 
-    async function uploadImage(file, type) {
-        const formData = new FormData();
-        formData.append('file', file);
         try {
-            const response = await fetch('/upload_image/', {
-                method: 'POST',
-                body: formData,
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(cargaData)
             });
+
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.detail || 'Error al subir la imagen.');
+                throw new Error(errorData.detail || 'Error al procesar el registro de carga.');
             }
-            const data = await response.json();
-            return data.url;
+
+            alert(`Registro de carga ${isUpdate ? 'actualizado' : 'registrado'} exitosamente!`);
         } catch (error) {
-            console.error('Error uploading image:', error);
-            return null;
+            console.error('Error al procesar registro de carga:', error);
+            alert('Error al procesar registro de carga: ' + error.message);
+            return;
         }
+
+        clearCargaForm();
+        loadCargas();
+        form.classList.remove('was-validated');
     }
 
     async function loadCargas() {
         try {
             const response = await fetch('/cargas/');
             if (!response.ok) {
-                throw new Error('Error al cargar los registros de carga.');
+                throw new Error('Error al obtener registros de carga: ' + response.statusText);
             }
             const cargas = await response.json();
             const tableBody = document.getElementById('cargasTableBody');
-            tableBody.innerHTML = ''; // Limpiar tabla
-
-            const noCargasMessage = document.getElementById('noCargasMessage');
+            tableBody.innerHTML = '';
 
             if (cargas.length === 0) {
-                noCargasMessage.style.display = 'block';
+                document.getElementById('noCargasMessage').style.display = 'block';
             } else {
-                noCargasMessage.style.display = 'none';
+                document.getElementById('noCargasMessage').style.display = 'none';
                 cargas.forEach(carga => {
-                    const row = tableBody.insertRow();
-                    row.insertCell().innerText = carga.id;
-                    const imgCell = row.insertCell();
-                    if (carga.url_imagen) {
-                        imgCell.innerHTML = `<img src="${carga.url_imagen}" alt="Imagen de ${carga.modelo_auto}" class="img-thumbnail img-thumbnail-square">`;
-                    } else {
-                        imgCell.innerText = 'No image';
-                    }
-                    row.insertCell().innerText = carga.modelo_auto;
-                    row.insertCell().innerText = carga.tipo_autonomia;
-                    row.insertCell().innerText = carga.autonomia_km;
-                    row.insertCell().innerText = carga.consumo_kwh_100km;
-                    row.insertCell().innerText = carga.tiempo_carga_horas;
-
-                    const dificultadCell = row.insertCell();
-                    if (carga.dificultad_carga === 'alta') {
-                        dificultadCell.innerHTML = '<span class="badge bg-danger">Alta</span>';
-                    } else if (carga.dificultad_carga === 'media') {
-                        dificultadCell.innerHTML = '<span class="badge bg-warning">Media</span>';
-                    } else {
-                        dificultadCell.innerHTML = '<span class="badge bg-success">Baja</span>';
-                    }
-
-                    const instalacionCell = row.insertCell();
-                    if (carga.requiere_instalacion_domestica) {
-                        instalacionCell.innerHTML = '<span class="badge bg-warning"><i class="fas fa-check-circle"></i> Sí</span>';
-                    } else {
-                        instalacionCell.innerHTML = '<span class="badge bg-success"><i class="fas fa-times-circle"></i> No</span>';
-                    }
-
-                    const actionsCell = row.insertCell();
-                    actionsCell.innerHTML = `
-                        <button class="btn btn-sm btn-info me-2" onclick="editCarga(${carga.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteCarga(${carga.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                    const row = `
+                        <tr>
+                            <td>${carga.id}</td>
+                            <td>
+                                ${carga.url_imagen ? `<img src="${carga.url_imagen}" alt="Imagen de ${carga.modelo}" class="img-thumbnail img-thumbnail-square">` : '<i class="fas fa-image text-muted"></i>'}
+                            </td>
+                            <td>${carga.modelo}</td>
+                            <td>${carga.tipo_autonomia}</td>
+                            <td>${carga.consumo_kwh_100km}</td>
+                            <td>${carga.tiempo_carga_horas}</td>
+                            <td>
+                                ${carga.dificultad_carga === 'alta' ? '<span class="badge bg-danger">Alta</span>' :
+                                carga.dificultad_carga === 'media' ? '<span class="badge bg-warning">Media</span>' :
+                                '<span class="badge bg-success">Baja</span>'}
+                            </td>
+                            <td>
+                                ${carga.requiere_instalacion_domestica ? '<span class="badge bg-warning"><i class="fas fa-check-circle"></i> Sí</span>' : '<span class="badge bg-success"><i class="fas fa-times-circle"></i> No</span>'}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-info me-1" onclick="editCarga(${carga.id})"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteCarga(${carga.id})"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>
                     `;
+                    tableBody.insertAdjacentHTML('beforeend', row);
                 });
             }
         } catch (error) {
             console.error('Error al cargar cargas:', error);
-            alert('Error al cargar registros de carga: ' + error.message);
+            const tableBody = document.getElementById('cargasTableBody');
+            tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar registros de carga: ${error.message}</td></tr>`;
         }
     }
 
@@ -320,22 +313,19 @@
         try {
             const response = await fetch(`/cargas/${cargaId}`);
             if (!response.ok) {
-                throw new Error('Error al cargar la carga para edición.');
+                throw new Error('Error al obtener registro de carga para edición.');
             }
             const carga = await response.json();
+
             document.getElementById('cargaId').value = carga.id;
-            document.getElementById('cargaModelo').value = carga.modelo_auto;
-            document.getElementById('tipoAutonomia').value = carga.tipo_autonomia;
-            // Llamar a la función para mostrar la definición al cargar el valor
-            showAutonomyDefinition(carga.tipo_autonomia);
-            document.getElementById('autonomiaKm').value = carga.autonomia_km;
-            document.getElementById('consumoKwh').value = carga.consumo_kwh_100km;
-            document.getElementById('tiempoCarga').value = carga.tiempo_carga_horas;
-            document.getElementById('dificultadCarga').value = carga.dificultad_carga;
-            document.getElementById('requiereInstalacion').checked = carga.requiere_instalacion_domestica;
+            document.getElementById('cargaModelo').value = carga.modelo;
+            document.getElementById('tipo_autonomia').value = carga.tipo_autonomia;
+            document.getElementById('consumo_kwh_100km').value = carga.consumo_kwh_100km;
+            document.getElementById('tiempo_carga_horas').value = carga.tiempo_carga_horas;
+            document.getElementById('dificultad_carga').value = carga.dificultad_carga;
+            document.getElementById('requiere_instalacion_domestica').value = carga.requiere_instalacion_domestica.toString();
             document.getElementById('url_imagen_carga').value = carga.url_imagen || '';
 
-            // Mostrar vista previa de la imagen si existe
             const imagePreview = document.getElementById('imagePreviewCarga');
             if (carga.url_imagen) {
                 imagePreview.src = carga.url_imagen;
@@ -344,10 +334,19 @@
                 imagePreview.src = '';
                 imagePreview.style.display = 'none';
             }
+            document.getElementById('url_imagen_file_carga').value = '';
+
+            document.getElementById('cargaForm').classList.remove('was-validated');
+            document.querySelectorAll('#cargaForm .form-control').forEach(input => {
+                input.classList.remove('is-valid', 'is-invalid');
+                if (input.nextElementSibling && input.nextElementSibling.classList.contains('invalid-feedback')) {
+                    input.nextElementSibling.innerText = '';
+                }
+            });
 
         } catch (error) {
             console.error('Error al editar carga:', error);
-            alert('Error al cargar datos de la carga para edición: ' + error.message);
+            alert('Error al cargar datos de carga para edición: ' + error.message);
         }
     }
 
@@ -390,33 +389,7 @@
                 input.nextElementSibling.innerText = '';
             }
         });
-        // Ocultar la definición al limpiar el formulario
-        document.getElementById('autonomyDefinition').style.display = 'none';
-        document.getElementById('autonomyDefinition').innerText = '';
     }
-
-    function filterCargas() {
-        const input = document.getElementById('searchCarga');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('cargasTableBody');
-        const tr = table.getElementsByTagName('tr');
-        let anyVisible = false;
-
-        for (let i = 0; i < tr.length; i++) {
-            const tdModelo = tr[i].getElementsByTagName('td')[2]; // Columna de Modelo Auto
-            if (tdModelo) {
-                const textValue = tdModelo.textContent || tdModelo.innerText;
-                if (textValue.toLowerCase().indexOf(filter) > -1) {
-                    tr[i].style.display = '';
-                    anyVisible = true;
-                } else {
-                    tr[i].style.display = 'none';
-                }
-            }
-        }
-        document.getElementById('noCargasMessage').style.display = anyVisible ? 'none' : 'block';
-    }
-
 
     // Cargar cargas al cargar la página inicialmente
     document.addEventListener('DOMContentLoaded', loadCargas);
