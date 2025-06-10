@@ -18,7 +18,7 @@ from database import DATABASE_URL, Base, engine  # Importar el engine y Base de 
 # Configuración de logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(name)s - \"%(levelname)s\" - %(message)s"
 )
 logger = logging.getLogger("migrador")
 
@@ -40,27 +40,27 @@ def conversion_tipo_auto(fila: dict) -> dict:
         "anio": int(fila["anio"]),
         "capacidad_bateria_kwh": float(fila["capacidad_bateria_kwh"]),
         "autonomia_km": float(fila["autonomia_km"]),
-        "disponible": fila["disponible"].lower() == 'true',
-        "url_imagen": fila.get("url_imagen") if fila.get("url_imagen") else None
+        "disponible": fila["disponible"].lower() == "true",
+        "url_imagen": fila.get("url_imagen")  # Usar .get para que no falle si la columna no existe
     }
 
 
-# Función para convertir tipos de datos para CargaBase
+# Función para convertir tipos de datos para Carga
 def conversion_tipo_carga(fila: dict) -> dict:
     return {
         "id": int(fila["id"]),
-        "modelo": fila["modelo"],
+        "modelo_auto": fila["modelo_auto"],
         "tipo_autonomia": fila["tipo_autonomia"],
         "autonomia_km": float(fila["autonomia_km"]),
         "consumo_kwh_100km": float(fila["consumo_kwh_100km"]),
         "tiempo_carga_horas": float(fila["tiempo_carga_horas"]),
         "dificultad_carga": fila["dificultad_carga"],
-        "requiere_instalacion_domestica": fila["requiere_instalacion_domestica"].lower() == 'true',
-        "url_imagen": fila.get("url_imagen") if fila.get("url_imagen") else None
+        "requiere_instalacion_domestica": fila["requiere_instalacion_domestica"].lower() == "true",
+        "url_imagen": fila.get("url_imagen")
     }
 
 
-# Función para convertir tipos de datos para EstacionBase
+# Función para convertir tipos de datos para Estacion
 def conversion_tipo_estacion(fila: dict) -> dict:
     return {
         "id": int(fila["id"]),
@@ -69,64 +69,74 @@ def conversion_tipo_estacion(fila: dict) -> dict:
         "tipo_conector": fila["tipo_conector"],
         "potencia_kw": float(fila["potencia_kw"]),
         "num_conectores": int(fila["num_conectores"]),
-        "acceso_publico": fila["acceso_publico"].lower() == 'true',
+        "acceso_publico": fila["acceso_publico"].lower() == "true",
         "horario_apertura": fila["horario_apertura"],
         "coste_por_kwh": float(fila["coste_por_kwh"]),
         "operador": fila["operador"],
-        "url_imagen": fila.get("url_imagen") if fila.get("url_imagen") else None
+        "url_imagen": fila.get("url_imagen")
     }
 
 
-def migrar_csv_a_db(filepath: str, modelo_sql, conversion_func):
+def migrar_csv_a_db(filepath: str, sql_model: Base, conversion_func):
     """
-    Lee un archivo CSV y migra sus datos a la tabla correspondiente en la base de datos.
-    Ignora registros si ya existen con el mismo ID.
+    Migra datos desde un archivo CSV a una tabla de la base de datos.
+    :param filepath: La ruta al archivo CSV.
+    :param sql_model: El modelo SQLAlchemy (ej. AutoElectricoSQL) al que se migrarán los datos.
+    :param conversion_func: Una función que convierte cada fila del CSV (diccionario)
+                            al formato esperado por el modelo SQL.
     """
     if not os.path.exists(filepath):
-        logger.warning(f"⚠️ Archivo CSV no encontrado en: {filepath}. Saltando migración.")
+        logger.info(f"ℹ️ Archivo CSV no encontrado: {filepath}. Saltando migración para este archivo.")
         return
 
-    logger.info(f"Iniciando migración desde {filepath} a la tabla {modelo_sql.__tablename__}...")
-
+    logger.info(f"🔄 Iniciando migración de {filepath} a la tabla {sql_model.__tablename__}...")
     try:
-        with open(filepath, mode='r', newline='', encoding='utf-8') as file:
+        with open(filepath, mode='r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
-            db = SessionLocal()  # Abre una sesión para este archivo
+            datos = [conversion_func(fila) for fila in reader]
 
+            db = SessionLocal()
             try:
-                for fila in reader:
-                    try:
-                        datos_convertidos = conversion_func(fila)
+                inspector = inspect(engine)
+                table_name = sql_model.__tablename__
 
-                        # Verificar si el registro ya existe usando el ID
-                        registro_id = datos_convertidos.get('id')
-                        if registro_id is not None:
-                            # Intenta obtener el registro existente
-                            existente = db.query(modelo_sql).filter(modelo_sql.id == registro_id).first()
-                            if existente:
-                                logger.info(
-                                    f"Registro con ID {registro_id} ya existe en {modelo_sql.__tablename__}. Saltando inserción.")
-                                continue  # Saltar al siguiente registro en el CSV
+                # Obtener los IDs existentes en la tabla para evitar duplicados
+                existing_ids = set()
+                if inspector.has_table(table_name):
+                    existing_ids = set(db.query(sql_model.id).all())
 
-                        # Si no existe, crea e inserta el nuevo registro
-                        instancia_modelo = modelo_sql(**datos_convertidos)
-                        db.add(instancia_modelo)
-                        db.commit()
-                        # logger.info(f"✅ Registro {instancia_modelo.id} de {filepath} insertado en {modelo_sql.__tablename__}.")
-                    except IntegrityError as ie:
-                        db.rollback()  # Hacer rollback de la operación actual
-                        if "unique constraint" in str(ie).lower():
-                            logger.warning(
-                                f"⚠️ Registro con ID {datos_convertidos.get('id', 'N/A')} ya existe en {modelo_sql.__tablename__} (UniqueViolation). Saltando.")
+                nuevos_registros = 0
+                registros_actualizados = 0
+
+                for dato in datos:
+                    instance_id = dato.get("id")
+                    if instance_id and (instance_id,) in existing_ids:  # Tuple comparison for set
+                        # Si el registro ya existe, actualiza
+                        db_instance = db.query(sql_model).filter(sql_model.id == instance_id).first()
+                        if db_instance:
+                            for key, value in dato.items():
+                                setattr(db_instance, key, value)
+                            registros_actualizados += 1
                         else:
-                            logger.error(f"❌ Error de integridad al insertar registro de {filepath}: {ie}",
-                                         exc_info=True)
-                    except Exception as e:
-                        db.rollback()  # Asegúrate de hacer rollback en cualquier error de fila
-                        logger.error(f"❌ Error al procesar fila de {filepath}: {e}", exc_info=True)
+                            logger.warning(
+                                f"Advertencia: El ID {instance_id} existe en el conjunto de IDs, pero no se encontró la instancia para actualizar. Esto no debería pasar.")
+                    else:
+                        # Si no existe, crea uno nuevo
+                        db_instance = sql_model(**dato)
+                        db.add(db_instance)
+                        nuevos_registros += 1
 
-                logger.info(f"🎉 Migración de {filepath} a {modelo_sql.__tablename__} completada (duplicados omitidos).")
+                db.commit()
+                logger.info(
+                    f"✅ Migración de {filepath} completada. {nuevos_registros} nuevos registros, {registros_actualizados} registros actualizados.")
 
+            except IntegrityError as e:
+                db.rollback()
+                logger.error(
+                    f"❌ Error de integridad al migrar {filepath}. Posible duplicado de ID o dato inválido. Detalles: {e}",
+                    exc_info=True)
+                logger.error(
+                    f"Revise el CSV: {filepath} para datos duplicados en la columna 'id' o datos inconsistentes.")
             except Exception as e:
                 db.rollback()  # Revertir si hay algún error
                 logger.error(f"❌ Error durante la migración de {filepath} a la base de datos: {e}", exc_info=True)
@@ -158,4 +168,6 @@ def main():
 
 
 if __name__ == "__main__":
+    logger.info("Iniciando script de migración CSV a DB...")
     main()
+    logger.info("Migración CSV a DB completada.")

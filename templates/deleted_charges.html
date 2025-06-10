@@ -33,12 +33,12 @@
                         <td>{{ carga.id }}</td>
                         <td>
                             {% if carga.url_imagen %}
-                                <img src="{{ carga.url_imagen }}" alt="Imagen de {{ carga.modelo }}" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
+                                <img src="{{ carga.url_imagen }}" alt="Imagen de Carga" class="img-thumbnail img-thumbnail-square">
                             {% else %}
-                                <i class="fas fa-image text-muted" style="font-size: 2rem;"></i>
+                                N/A
                             {% endif %}
                         </td>
-                        <td>{{ carga.modelo }}</td>
+                        <td>{{ carga.modelo_auto }}</td>
                         <td>{{ carga.tipo_autonomia }}</td>
                         <td>{{ carga.autonomia_km }}</td>
                         <td>{{ carga.consumo_kwh_100km }}</td>
