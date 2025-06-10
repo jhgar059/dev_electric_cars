@@ -18,61 +18,60 @@
             <li><i class="fas fa-trash-alt me-2 text-primary"></i> <strong>Entidades Eliminadas:</strong> Clases espejo para mantener el historial de registros eliminados (AutoEliminado, CargaEliminada, EstacionEliminada).</li>
         </ul>
         <p>
-            Las relaciones son principalmente de composición (la carga y la estación de carga son entidades separadas con sus propios atributos) y de herencia (los modelos SQL heredan de `Base` y los modelos Pydantic de `BaseModel`).
+            Las relaciones son principalmente de composición (la carga y la estación son componentes que se relacionan con un auto eléctrico, aunque no directamente en un sentido estricto de cardinalidad uno a muchos bidireccional en el ORM, sí lo son conceptualmente).
         </p>
-        <div class="text-center mb-4">
-            <img src="/static/images/Diagrama%20de%20Clases%20(Conceptual).png" alt="Diagrama de Clases Conceptual" class="img-fluid rounded shadow-sm border border-light">
-            <small class="d-block text-muted mt-2">Representación simplificada de las clases principales del sistema.</small>
+        <div class="text-center">
+            <img src="/static/images/class_diagram.png" alt="Diagrama de Clases" class="img-fluid rounded shadow-sm" style="max-width: 800px;">
         </div>
     </div>
 
     <div class="info-block mb-4 fade-in">
-        <h2 class="h4 text-primary mb-3">2. Modelo de Base de Datos (Relacional)</h2>
+        <h2 class="h4 text-primary mb-3">2. Modelo Entidad-Relación (Base de Datos)</h2>
         <p>
-            La base de datos se diseñó utilizando un modelo relacional para asegurar la integridad y la eficiencia en el almacenamiento y recuperación de datos. Se utilizan tablas separadas para cada entidad principal y tablas adicionales para los registros eliminados, permitiendo una gestión robusta del historial.
+            El MER es una representación abstracta de la estructura de una base de datos. Se han diseñado tablas para cada entidad principal y sus respectivas tablas de historial.
         </p>
         <ul class="list-unstyled">
-            <li><i class="fas fa-table me-2 text-success"></i> <strong><code>autos_electricos</code>:</strong> (id, marca, modelo, anio, capacidad_bateria_kwh, autonomia_km, disponible, url_imagen)</li>
-            <li><i class="fas fa-table me-2 text-success"></i> <strong><code>dificultad_carga</code>:</strong> (id, modelo, tipo_autonomia, autonomia_km, consumo_kwh_100km, tiempo_carga_horas, dificultad_carga, requiere_instalacion_domestica, url_imagen)</li>
-            <li><i class="fas fa-table me-2 text-success"></i> <strong><code>estaciones_carga</code>:</strong> (id, nombre, ubicacion, tipo_conector, potencia_kw, num_conectores, acceso_publico, horario_apertura, coste_por_kwh, operador, url_imagen)</li>
-            <li><i class="fas fa-archive me-2 text-secondary"></i> <strong>Tablas de Eliminados:</strong> <code>autos_eliminados</code>, <code>dificultad_carga_eliminados</code>, <code>estaciones_eliminadas</code> con estructuras espejo.</li>
+            <li><i class="fas fa-table me-2 text-primary"></i> <strong>Tablas Principales:</strong> <code>autos_electricos</code>, <code>cargas</code>, <code>estaciones_carga</code>.</li>
+            <li><i class="fas fa-archive me-2 text-primary"></i> <strong>Tablas de Historial:</strong> <code>autos_eliminados</code>, <code>cargas_eliminadas</code>, <code>estaciones_eliminadas</code>.</li>
         </ul>
-        <div class="text-center mb-4">
-            <img src="/static/images/diagrama.png" alt="Modelo Relacional de Base de Datos" class="img-fluid rounded shadow-sm border border-light">
-            <small class="d-block text-muted mt-2">Esquema de las tablas y sus relaciones básicas.</small>
+        <p>
+            Las relaciones se gestionan a través de claves primarias (ID) y no se implementan claves foráneas explícitas a nivel de base de datos entre las tablas principales y de historial en este diseño simplificado, ya que la lógica de "movimiento" se maneja a nivel de aplicación (borrar de una, insertar en otra). Para búsquedas, las tablas eliminadas replican la estructura de las principales.
+        </p>
+        <div class="text-center">
+            <img src="/static/images/ER_diagram.png" alt="Diagrama Entidad-Relación" class="img-fluid rounded shadow-sm" style="max-width: 800px;">
         </div>
     </div>
 
     <div class="info-block fade-in">
         <h2 class="h4 text-primary mb-3">3. Tecnologías Seleccionadas</h2>
         <p>
-            La elección de las tecnologías se basó en la robustez, escalabilidad, facilidad de desarrollo y la popularidad en el ecosistema de desarrollo web moderno.
+            Para este proyecto, se han elegido un conjunto de tecnologías robustas y modernas para asegurar escalabilidad, mantenibilidad y una buena experiencia de desarrollo y usuario.
         </p>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+        <div class="row row-cols-1 row-cols-md-3 g-4 mt-3">
             <div class="col">
                 <div class="card h-100 shadow-sm text-center">
                     <div class="card-body">
-                        <i class="fab fa-python fa-3x text-success mb-3"></i>
-                        <h5 class="card-title">Python</h5>
-                        <p class="card-text">Lenguaje de programación principal, conocido por su sintaxis clara y su vasto ecosistema de librerías.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100 shadow-sm text-center">
-                    <div class="card-body">
-                        <i class="fas fa-rocket fa-3x text-info mb-3"></i>
+                        <i class="fas fa-server fa-3x text-primary mb-3"></i>
                         <h5 class="card-title">FastAPI</h5>
-                        <p class="card-text">Framework web moderno y rápido para construir APIs, con validación de datos automática con Pydantic.</p>
+                        <p class="card-text">Framework web de alto rendimiento para construir APIs RESTful, basado en Starlette y Pydantic.</p>
                     </div>
                 </div>
             </div>
             <div class="col">
                 <div class="card h-100 shadow-sm text-center">
                     <div class="card-body">
-                        <i class="fas fa-database fa-3x text-primary mb-3"></i>
-                        <h5 class="card-title">PostgreSQL & SQLAlchemy</h5>
-                        <p class="card-text">Base de datos relacional robusta y un ORM potente para interactuar con ella de forma programática.</p>
+                        <i class="fas fa-database fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">SQLAlchemy</h5>
+                        <p class="card-text">Potente ORM (Object-Relational Mapper) para Python, que permite interactuar con bases de datos de forma orientada a objetos.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fas fa-solid fa-chart-simple fa-3x text-info mb-3"></i>
+                        <h5 class="card-title">Chart.js</h5>
+                        <p class="card-text">Librería de JavaScript para crear gráficos responsivos y visualmente atractivos en el frontend.</p>
                     </div>
                 </div>
             </div>

@@ -16,96 +16,88 @@
         <ul class="list-unstyled">
             <li><i class="fas fa-chart-pie me-2 text-primary"></i> Distribución de autos por marca o año.</li>
             <li><i class="fas fa-chart-bar me-2 text-primary"></i> Potencia promedio de estaciones de carga por tipo de conector.</li>
-            <li><i class="fas fa-chart-line me-2 text-primary"></i> Tendencias de autonomía o capacidad de batería a lo largo de los años.</li>
+            <li><i class="fas fa-line-chart me-2 text-primary"></i> Tendencias de autonomía o capacidad de batería a lo largo de los años.</li>
             <li><i class="fas fa-map-marker-alt me-2 text-primary"></i> Mapa de densidad de estaciones de carga.</li>
             <li><i class="fas fa-percentage me-2 text-primary"></i> Porcentaje de autos disponibles vs. no disponibles.</li>
         </ul>
     </div>
 
     <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="info-block h-100">
-                <h3 class="h4 text-primary mb-3"><i class="fas fa-chart-pie me-2"></i>Autos por Marca</h3>
-                <div class="chart-container-large">
-                    <canvas id="carsByBrandChart"></canvas>
-                </div>
+        <div class="col-md-6 fade-in">
+            <div class="chart-container">
+                <h5>Distribución de Autos por Marca</h5>
+                <canvas id="carsByBrandChart"></canvas>
             </div>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="info-block h-100">
-                <h3 class="h4 text-success mb-3"><i class="fas fa-bolt me-2"></i>Dificultad de Carga</h3>
-                <div class="chart-container-large">
-                    <canvas id="chargeDifficultyChart"></canvas>
-                </div>
+        <div class="col-md-6 fade-in">
+            <div class="chart-container">
+                <h5>Estaciones por Tipo de Conector</h5>
+                <canvas id="stationPowerChart"></canvas>
             </div>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="info-block h-100">
-                <h3 class="h4 text-info mb-3"><i class="fas fa-charging-station me-2"></i>Estaciones por Conector</h3>
-                <div class="chart-container-large">
-                    <canvas id="stationPowerChart"></canvas>
-                </div>
+        <div class="col-md-6 fade-in">
+            <div class="chart-container">
+                <h5>Dificultad de Carga</h5>
+                <canvas id="chargeDifficultyChart"></canvas>
             </div>
         </div>
-        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script>
-    // Asegurarse de que los canvas tengan un tamaño fijo para Chart.js
-    // Esto es vital para evitar el descuadre si los contenedores no tienen un tamaño definido
-    // o si Chart.js tiene problemas calculando su tamaño.
-    // Aunque Chart.js es responsive, a veces requiere un contenedor con dimensiones.
-    // Alternativamente, asegúrate de que .chart-container-large tenga un height definido en tu CSS.
-    // Por ejemplo: .chart-container-large { position: relative; height: 400px; width: 100%; }
-
-    // Función para obtener datos de una API y renderizar un gráfico de barras
     async function renderCarsByBrandChart() {
         try {
             const response = await fetch('/api/statistics/cars_by_brand');
+            if (!response.ok) {
+                throw new Error('Error al obtener datos de autos por marca.');
+            }
             const data = await response.json();
-            const ctx = document.getElementById('carsByBrandChart').getContext('2d');
 
+            const labels = data.map(item => item.marca);
+            const counts = data.map(item => item.count);
+            const colors = [
+                'rgba(37, 99, 235, 0.7)',  // Primary color
+                'rgba(6, 182, 212, 0.7)',  // Teal
+                'rgba(139, 92, 246, 0.7)', // Violet
+                'rgba(234, 179, 8, 0.7)',  // Amber
+                'rgba(239, 68, 68, 0.7)',  // Red
+                'rgba(5, 150, 105, 0.7)'   // Green
+            ];
+            const borderColors = [
+                'rgba(37, 99, 235, 1)',
+                'rgba(6, 182, 212, 1)',
+                'rgba(139, 92, 246, 1)',
+                'rgba(234, 179, 8, 1)',
+                'rgba(239, 68, 68, 1)',
+                'rgba(5, 150, 105, 1)'
+            ];
+
+            const ctx = document.getElementById('carsByBrandChart').getContext('2d');
             new Chart(ctx, {
-                type: 'bar',
+                type: 'pie',
                 data: {
-                    labels: Object.keys(data),
+                    labels: labels,
                     datasets: [{
-                        label: 'Número de Autos',
-                        data: Object.values(data),
-                        backgroundColor: 'rgba(37, 99, 235, 0.6)', // primary-color
-                        borderColor: 'rgba(37, 99, 235, 1)',
+                        data: counts,
+                        backgroundColor: colors,
+                        borderColor: borderColors,
                         borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // Importante para controlar el tamaño
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cantidad'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Marca'
-                            }
-                        }
-                    },
                     plugins: {
                         legend: {
-                            display: false
+                            position: 'top',
                         },
                         title: {
-                            display: false // Desactivar título de Chart.js si ya tienes un h3
+                            display: false, // Desactivar título de Chart.js
                         }
                     }
-                }
+                },
             });
         } catch (error) {
             console.error('Error al cargar datos para el gráfico de autos por marca:', error);
@@ -114,45 +106,66 @@
         }
     }
 
-    // Función para obtener datos de dificultad de carga y renderizar un gráfico de dona
     async function renderChargeDifficultyChart() {
         try {
-            const response = await fetch('/api/statistics/charge_difficulty');
+            const response = await fetch('/api/statistics/charge_difficulty_distribution');
+            if (!response.ok) {
+                throw new Error('Error al obtener datos de dificultad de carga.');
+            }
             const data = await response.json();
-            const ctx = document.getElementById('chargeDifficultyChart').getContext('2d');
 
+            const labels = data.map(item => item.dificultad);
+            const counts = data.map(item => item.count);
+            const colors = [
+                'rgba(5, 150, 105, 0.7)',  // Baja (verde)
+                'rgba(234, 179, 8, 0.7)',  // Media (amarillo)
+                'rgba(239, 68, 68, 0.7)'   // Alta (rojo)
+            ];
+            const borderColors = [
+                'rgba(5, 150, 105, 1)',
+                'rgba(234, 179, 8, 1)',
+                'rgba(239, 68, 68, 1)'
+            ];
+
+            const ctx = document.getElementById('chargeDifficultyChart').getContext('2d');
             new Chart(ctx, {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
-                    labels: Object.keys(data).map(key => key.charAt(0).toUpperCase() + key.slice(1)), // Capitalizar
+                    labels: labels,
                     datasets: [{
-                        label: 'Dificultad de Carga',
-                        data: Object.values(data),
-                        backgroundColor: [
-                            'rgba(5, 150, 105, 0.7)',  // Baja (success)
-                            'rgba(217, 119, 6, 0.7)',   // Media (warning)
-                            'rgba(220, 38, 38, 0.7)'    // Alta (danger)
-                        ],
-                        borderColor: [
-                            'rgba(5, 150, 105, 1)',
-                            'rgba(217, 119, 6, 1)',
-                            'rgba(220, 38, 38, 1)'
-                        ],
+                        label: 'Cantidad de Registros',
+                        data: counts,
+                        backgroundColor: colors,
+                        borderColor: borderColors,
                         borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // Importante para controlar el tamaño
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Registros'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Dificultad de Carga'
+                            }
+                        }
+                    },
                     plugins: {
                         legend: {
-                            position: 'top',
+                            display: false
                         },
                         title: {
-                            display: false // Desactivar título de Chart.js
+                            display: false, // Desactivar título de Chart.js
                         }
                     }
-                }
+                },
             });
         } catch (error) {
             console.error('Error al cargar datos para el gráfico de dificultad de carga:', error);
@@ -161,34 +174,52 @@
         }
     }
 
-    // Función para obtener datos de distribución de potencia de estaciones y renderizar un gráfico de barras
     async function renderStationPowerChart() {
         try {
-            const response = await fetch('/api/statistics/station_power_distribution');
+            const response = await fetch('/api/statistics/station_power_by_connector_type');
+            if (!response.ok) {
+                throw new Error('Error al obtener datos de potencia de estaciones por conector.');
+            }
             const data = await response.json();
-            const ctx = document.getElementById('stationPowerChart').getContext('2d');
 
+            const labels = data.map(item => item.tipo_conector);
+            const avgPowers = data.map(item => item.avg_potencia_kw);
+            const colors = [
+                'rgba(37, 99, 235, 0.7)',
+                'rgba(6, 182, 212, 0.7)',
+                'rgba(139, 92, 246, 0.7)',
+                'rgba(234, 179, 8, 0.7)',
+                'rgba(239, 68, 68, 0.7)'
+            ];
+            const borderColors = [
+                'rgba(37, 99, 235, 1)',
+                'rgba(6, 182, 212, 1)',
+                'rgba(139, 92, 246, 1)',
+                'rgba(234, 179, 8, 1)',
+                'rgba(239, 68, 68, 1)'
+            ];
+
+            const ctx = document.getElementById('stationPowerChart').getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(data),
+                    labels: labels,
                     datasets: [{
-                        label: 'Número de Estaciones',
-                        data: Object.values(data),
-                        backgroundColor: 'rgba(14, 165, 233, 0.6)', // info-color
-                        borderColor: 'rgba(14, 165, 233, 1)',
+                        label: 'Potencia Promedio (kW)',
+                        data: avgPowers,
+                        backgroundColor: colors,
+                        borderColor: borderColors,
                         borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // Importante para controlar el tamaño
                     scales: {
                         y: {
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Cantidad'
+                                text: 'Potencia Promedio (kW)'
                             }
                         },
                         x: {

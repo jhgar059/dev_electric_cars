@@ -26,14 +26,14 @@ class AutoActualizado(BaseModel):
     url_imagen: Optional[str] = Field(None, max_length=255)
 
 
-# ------------------ Modelos para Dificultad de Carga ------------------
+# ------------------ Modelos para Carga ------------------
 
 class CargaBase(BaseModel):
-    modelo: str = Field(..., min_length=1, max_length=50)
-    tipo_autonomia: str = Field(..., pattern="^(urbana|mixta|autopista)$", description="Tipo de autonomía (urbana, mixta, autopista)")
-    autonomia_km: float = Field(..., ge=50, le=800)
-    consumo_kwh_100km: float = Field(..., ge=10, le=30)
-    tiempo_carga_horas: float = Field(..., ge=0.5, le=24)
+    modelo_auto: str = Field(..., min_length=1, max_length=50)
+    tipo_autonomia: str = Field(..., pattern="^(EPA|WLTP|NEDC|Mixta)$", description="Tipo de autonomía (EPA, WLTP, NEDC, Mixta)")
+    autonomia_km: float = Field(..., gt=0)
+    consumo_kwh_100km: float = Field(..., gt=0)
+    tiempo_carga_horas: float = Field(..., gt=0)
     dificultad_carga: str = Field(..., pattern="^(baja|media|alta)$", description="Nivel de dificultad de carga (baja, media, alta)")
     requiere_instalacion_domestica: bool = Field(...)
     url_imagen: Optional[str] = Field(None, max_length=255) # Nuevo campo
@@ -42,11 +42,11 @@ class CargaConID(CargaBase):
     id: int
 
 class CargaActualizada(BaseModel):
-    modelo: Optional[str] = Field(None, min_length=1, max_length=50)
-    tipo_autonomia: Optional[str] = Field(None, pattern="^(urbana|mixta|autopista)$")
-    autonomia_km: Optional[float] = Field(None, ge=50, le=800)
-    consumo_kwh_100km: Optional[float] = Field(None, ge=10, le=30)
-    tiempo_carga_horas: Optional[float] = Field(None, ge=0.5, le=24)
+    modelo_auto: Optional[str] = Field(None, min_length=1, max_length=50)
+    tipo_autonomia: Optional[str] = Field(None, pattern="^(EPA|WLTP|NEDC|Mixta)$")
+    autonomia_km: Optional[float] = Field(None, gt=0)
+    consumo_kwh_100km: Optional[float] = Field(None, gt=0)
+    tiempo_carga_horas: Optional[float] = Field(None, gt=0)
     dificultad_carga: Optional[str] = Field(None, pattern="^(baja|media|alta)$")
     requiere_instalacion_domestica: Optional[bool] = Field(None)
     url_imagen: Optional[str] = Field(None, max_length=255)

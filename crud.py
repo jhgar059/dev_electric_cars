@@ -24,7 +24,7 @@ def create_auto(db: Session, auto: AutoElectrico):
         models.AutoElectricoSQL.anio == auto.anio
     ).first()
     if existing_auto:
-        return None # O lanzar una HTTPException en main.py
+        raise ValueError(f"Ya existe un auto con el modelo '{auto.modelo}' y año '{auto.anio}'")
 
     db_auto = models.AutoElectricoSQL(**auto.model_dump())
     db.add(db_auto)
@@ -45,9 +45,9 @@ def update_auto(db: Session, auto_id: int, auto: AutoElectrico):
 def delete_auto(db: Session, auto_id: int):
     db_auto = db.query(models.AutoElectricoSQL).filter(models.AutoElectricoSQL.id == auto_id).first()
     if db_auto:
-        # Crea una nueva instancia de AutoEliminadoSQL con los datos del auto a eliminar
-        # Se elimina el 'id=db_auto.id' para permitir que la base de datos genere un nuevo ID único
+        # Mover a la tabla de eliminados
         db_eliminado = models.AutoEliminadoSQL(
+            id=db_auto.id, # Mantener el ID original si es deseado
             marca=db_auto.marca,
             modelo=db_auto.modelo,
             anio=db_auto.anio,
@@ -62,13 +62,6 @@ def delete_auto(db: Session, auto_id: int):
         return db_auto
     return None
 
-
-def get_average_autonomy(db: Session) -> Optional[float]:
-    """Calcula la autonomía promedio de todos los autos eléctricos."""
-    result = db.query(func.avg(models.AutoElectricoSQL.autonomia_km)).scalar()
-    return result if result is not None else 0.0
-
-
 # --------------------- OPERACIONES CARGAS ---------------------
 
 def get_cargas(db: Session, skip: int = 0, limit: int = 100):
@@ -77,15 +70,10 @@ def get_cargas(db: Session, skip: int = 0, limit: int = 100):
 def get_carga(db: Session, carga_id: int):
     return db.query(models.CargaSQL).filter(models.CargaSQL.id == carga_id).first()
 
-def create_carga(db: Session, carga: CargaBase):
-    # Opcional: Verificar si ya existe un registro de carga con el mismo modelo y tipo de autonomía
-    existing_carga = db.query(models.CargaSQL).filter(
-        models.CargaSQL.modelo == carga.modelo,
-        models.CargaSQL.tipo_autonomia == carga.tipo_autonomia
-    ).first()
-    if existing_carga:
-        return None # O lanzar una HTTPException
+def get_carga_by_modelo_auto(db: Session, modelo_auto: str):
+    return db.query(models.CargaSQL).filter(models.CargaSQL.modelo_auto.ilike(f"%{modelo_auto}%")).all()
 
+def create_carga(db: Session, carga: CargaBase):
     db_carga = models.CargaSQL(**carga.model_dump())
     db.add(db_carga)
     db.commit()
@@ -105,12 +93,11 @@ def update_carga(db: Session, carga_id: int, carga: CargaActualizada):
 def delete_carga(db: Session, carga_id: int):
     db_carga = db.query(models.CargaSQL).filter(models.CargaSQL.id == carga_id).first()
     if db_carga:
-        # Crea una nueva instancia de CargaEliminadaSQL con los datos de la carga a eliminar
-        # Se elimina el 'id=db_carga.id' para permitir que la base de datos genere un nuevo ID único
         db_eliminado = models.CargaEliminadaSQL(
+            id=db_carga.id,
             modelo_auto=db_carga.modelo_auto,
             tipo_autonomia=db_carga.tipo_autonomia,
-            autonomia_km_real=db_carga.autonomia_km_real,
+            autonomia_km=db_carga.autonomia_km,
             consumo_kwh_100km=db_carga.consumo_kwh_100km,
             tiempo_carga_horas=db_carga.tiempo_carga_horas,
             dificultad_carga=db_carga.dificultad_carga,
@@ -131,15 +118,10 @@ def get_estaciones(db: Session, skip: int = 0, limit: int = 100):
 def get_estacion(db: Session, estacion_id: int):
     return db.query(models.EstacionSQL).filter(models.EstacionSQL.id == estacion_id).first()
 
-def create_estacion(db: Session, estacion: EstacionBase):
-    # Opcional: Verificar si ya existe una estación con el mismo nombre y ubicación
-    existing_estacion = db.query(models.EstacionSQL).filter(
-        models.EstacionSQL.nombre == estacion.nombre,
-        models.EstacionSQL.ubicacion == estacion.ubicacion
-    ).first()
-    if existing_estacion:
-        return None # O lanzar una HTTPException
+def get_estacion_by_nombre(db: Session, nombre: str):
+    return db.query(models.EstacionSQL).filter(models.EstacionSQL.nombre.ilike(f"%{nombre}%")).all()
 
+def create_estacion(db: Session, estacion: EstacionBase):
     db_estacion = models.EstacionSQL(**estacion.model_dump())
     db.add(db_estacion)
     db.commit()
@@ -159,9 +141,8 @@ def update_estacion(db: Session, estacion_id: int, estacion: EstacionActualizada
 def delete_estacion(db: Session, estacion_id: int):
     db_estacion = db.query(models.EstacionSQL).filter(models.EstacionSQL.id == estacion_id).first()
     if db_estacion:
-        # Crea una nueva instancia de EstacionEliminadaSQL con los datos de la estación a eliminar
-        # Se elimina el 'id=db_estacion.id' para permitir que la base de datos genere un nuevo ID único
         db_eliminado = models.EstacionEliminadaSQL(
+            id=db_estacion.id,
             nombre=db_estacion.nombre,
             ubicacion=db_estacion.ubicacion,
             tipo_conector=db_estacion.tipo_conector,

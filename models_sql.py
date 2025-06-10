@@ -34,15 +34,15 @@ class AutoEliminadoSQL(Base):
 
 
 class CargaSQL(Base):
-    __tablename__ = "dificultad_carga"
+    __tablename__ = "cargas"
 
     id = Column(Integer, primary_key=True, index=True)
-    modelo = Column(String(50), nullable=False)
-    tipo_autonomia = Column(String(20), nullable=False)
+    modelo_auto = Column(String(50), nullable=False)
+    tipo_autonomia = Column(String(10), nullable=False)
     autonomia_km = Column(Float, nullable=False)
     consumo_kwh_100km = Column(Float, nullable=False)
     tiempo_carga_horas = Column(Float, nullable=False)
-    dificultad_carga = Column(String(10), nullable=False)
+    dificultad_carga = Column(String(10), nullable=False) # 'baja', 'media', 'alta'
     requiere_instalacion_domestica = Column(Boolean, default=False)
     url_imagen = Column(String(255), nullable=True) # Nuevo campo
 
@@ -51,8 +51,8 @@ class CargaEliminadaSQL(Base):
     __tablename__ = "cargas_eliminadas"
 
     id = Column(Integer, primary_key=True, index=True)
-    modelo = Column(String(50), nullable=False)
-    tipo_autonomia = Column(String(20), nullable=False)
+    modelo_auto = Column(String(50), nullable=False)
+    tipo_autonomia = Column(String(10), nullable=False)
     autonomia_km = Column(Float, nullable=False)
     consumo_kwh_100km = Column(Float, nullable=False)
     tiempo_carga_horas = Column(Float, nullable=False)
