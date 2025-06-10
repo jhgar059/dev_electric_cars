@@ -26,50 +26,87 @@
             </div>
             <div class="col-lg-6 text-center">
                 <div class="electric-car-animation">
-                    <i class="fas fa-car-side" style="font-size: 8rem; color: rgba(255,255,255,0.8);"></i>
-                    <i class="fas fa-charging-station" style="font-size: 6rem; color: rgba(255,255,255,0.6); position: absolute; top: 50%; left: 10%; transform: translateY(-50%);"></i>
-                    <i class="fas fa-bolt" style="font-size: 3rem; color: rgba(255,255,255,0.9); position: absolute; top: 20%; right: 20%; animation: pulse 2s infinite;"></i>
+                    <i class="fas fa-car-side animated-car" style="font-size: 8rem; color: rgba(255,255,255,0.8);"></i>
+                    <i class="fas fa-charging-station static-station" style="font-size: 8rem; color: rgba(255,255,255,0.8); margin-left: 20px;"></i>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="about-section py-5 bg-light">
+<section class="py-5 bg-light">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 text-center">
-                <h2 class="section-title mb-4">¿Qué Ofrecemos?</h2>
-                <p class="lead text-muted">
-                    Electric Cars Database es tu plataforma centralizada para explorar un mundo de datos sobre la movilidad eléctrica. Aquí encontrarás:
-                </p>
-                <div class="row mt-4">
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100 shadow-sm border-0 animate-on-scroll">
-                            <div class="card-body text-center">
-                                <i class="fas fa-car-battery fa-3x text-primary mb-3"></i>
-                                <h5 class="card-title">Detalles de Vehículos</h5>
-                                <p class="card-text">Información exhaustiva sobre marcas, modelos, baterías y autonomía de autos eléctricos.</p>
-                            </div>
+        <h2 class="text-center section-title mb-4">Características Principales</h2>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="col">
+                <div class="card h-100 shadow-sm feature-card fade-in-up">
+                    <div class="card-body text-center">
+                        <div class="icon-circle bg-primary text-white mb-3 mx-auto">
+                            <i class="fas fa-car"></i>
                         </div>
+                        <h5 class="card-title">Gestión de Autos Eléctricos</h5>
+                        <p class="card-text">Administra y consulta información detallada sobre modelos, autonomía y capacidad de batería.</p>
+                        <a href="{{ url_for('cars_page') }}" class="btn btn-sm btn-outline-primary">Ver más</a>
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100 shadow-sm border-0 animate-on-scroll" data-animation-delay="200">
-                            <div class="card-body text-center">
-                                <i class="fas fa-charging-station fa-3x text-success mb-3"></i>
-                                <h5 class="card-title">Estaciones de Carga</h5>
-                                <p class="card-text">Datos sobre ubicaciones, tipos de conector, potencia y disponibilidad de estaciones.</p>
-                            </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm feature-card fade-in-up" style="animation-delay: 0.1s;">
+                    <div class="card-body text-center">
+                        <div class="icon-circle bg-success text-white mb-3 mx-auto">
+                            <i class="fas fa-charging-station"></i>
                         </div>
+                        <h5 class="card-title">Estaciones de Carga</h5>
+                        <p class="card-text">Encuentra y gestiona estaciones con detalles de ubicación, tipos de conector y potencia.</p>
+                        <a href="{{ url_for('stations_page') }}" class="btn btn-sm btn-outline-success">Ver más</a>
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100 shadow-sm border-0 animate-on-scroll" data-animation-delay="400">
-                            <div class="card-body text-center">
-                                <i class="fas fa-tachometer-alt fa-3x text-info mb-3"></i>
-                                <h5 class="card-title">Estadísticas y Análisis</h5>
-                                <p class="card-text">Gráficos y métricas clave para entender las tendencias del mercado de EVs.</p>
-                            </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm feature-card fade-in-up" style="animation-delay: 0.2s;">
+                    <div class="card-body text-center">
+                        <div class="icon-circle bg-info text-white mb-3 mx-auto">
+                            <i class="fas fa-bolt"></i>
                         </div>
+                        <h5 class="card-title">Dificultad de Carga</h5>
+                        <p class="card-text">Evalúa y registra la facilidad o complejidad de la carga para distintos modelos de vehículos.</p>
+                        <a href="{{ url_for('charges_page') }}" class="btn btn-sm btn-outline-info">Ver más</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm feature-card fade-in-up" style="animation-delay: 0.3s;">
+                    <div class="card-body text-center">
+                        <div class="icon-circle bg-warning text-white mb-3 mx-auto">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h5 class="card-title">Estadísticas y Análisis</h5>
+                        <p class="card-text">Visualiza datos clave y tendencias del mercado con gráficos interactivos y métricas relevantes.</p>
+                        <a href="{{ url_for('statistics_page') }}" class="btn btn-sm btn-outline-warning">Ver más</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm feature-card fade-in-up" style="animation-delay: 0.4s;">
+                    <div class="card-body text-center">
+                        <div class="icon-circle bg-secondary text-white mb-3 mx-auto">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h5 class="card-title">Historial de Eliminados</h5>
+                        <p class="card-text">Accede a un registro detallado de elementos eliminados para auditoría y referencia histórica.</p>
+                        <a href="{{ url_for('deleted_cars_page') }}" class="btn btn-sm btn-outline-secondary">Ver Historial</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm feature-card fade-in-up" style="animation-delay: 0.5s;">
+                    <div class="card-body text-center">
+                        <div class="icon-circle bg-dark text-white mb-3 mx-auto">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h5 class="card-title">Información del Desarrollador</h5>
+                        <p class="card-text">Conoce al equipo detrás de este proyecto y la tecnología utilizada.</p>
+                        <a href="{{ url_for('developer_info_page') }}" class="btn btn-sm btn-outline-dark">Más Info</a>
                     </div>
                 </div>
             </div>
@@ -77,40 +114,19 @@
     </div>
 </section>
 
-<section class="stats-section py-5">
+<section class="py-5 bg-white">
     <div class="container">
-        <h2 class="section-title mb-5 text-center">Una Mirada Rápida a Nuestros Datos</h2>
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4 mb-4 animate-on-scroll">
-                <div class="info-block h-100 text-center">
-                    <h3 class="h4 text-primary mb-3"><i class="fas fa-road me-2"></i>Autonomía Promedio de Autos</h3>
-                    <div class="text-center py-4">
-                        <p class="display-3 fw-bold text-dark" id="averageAutonomy">{{ average_autonomy | round(0) if average_autonomy is not none else 'N/A' }}</p>
-                        <p class="lead text-muted">km (todos los modelos)</p>
-                    </div>
-                    <p class="text-muted mt-3">La autonomía promedio de todos los autos eléctricos registrados en nuestra base de datos.</p>
-                </div>
-            </div>
-            </div>
-    </div>
-</section>
-
-<section class="project-info-section py-5 bg-light">
-    <div class="container">
-        <h2 class="section-title mb-4 text-center">Acerca del Proyecto "Electric Cars Database"</h2>
         <div class="row justify-content-center">
             <div class="col-lg-10">
-                <div class="info-block p-4 shadow-sm rounded">
-                    <p class="lead text-muted">
-                        El proyecto "Electric Cars Database" es una iniciativa para crear una plataforma web integral dedicada a la recopilación y gestión de información sobre vehículos eléctricos (EVs) y su infraestructura de carga. Nace de la creciente necesidad de un recurso centralizado que facilite el acceso a datos cruciales para entusiastas, compradores potenciales y profesionales de la industria.
+                <div class="info-block fade-in">
+                    <h2 class="text-center section-title mb-4"><i class="fas fa-bullseye me-2"></i>Propósito del Proyecto</h2>
+                    <p class="lead text-center text-muted mb-4">
+                        El proyecto "Electric Cars Database" busca ser una plataforma integral y fácil de usar que centralice información sobre vehículos eléctricos y su infraestructura de carga.
                     </p>
-                    <p class="text-muted">
-                        Nuestro objetivo es simplificar la búsqueda y comprensión de las especificaciones de los vehículos, detalles de las estaciones de carga y el análisis de la experiencia de carga. Implementamos un sistema robusto que permite:
-                    </p>
-                    <ul class="list-unstyled text-muted ps-3">
-                        <li class="mb-2"><i class="fas fa-car-side me-2 text-primary"></i> <strong>Gestión de Autos Eléctricos:</strong> Registrar, consultar, actualizar y eliminar información detallada de diversos modelos de EVs, incluyendo marca, modelo, año, capacidad de batería y autonomía.</li>
-                        <li class="mb-2"><i class="fas fa-charging-station me-2 text-success"></i> <strong>Administración de Estaciones de Carga:</strong> Mantener un inventario de estaciones, con datos como ubicación, tipo de conector, potencia y disponibilidad.</li>
-                        <li class="mb-2"><i class="fas fa-bolt me-2 text-warning"></i> <strong>Análisis de Dificultad de Carga:</strong> Evaluar y registrar la facilidad o complejidad de la carga para distintos modelos, incluyendo tiempo de carga y requisitos de instalación.</li>
+                    <ul class="list-unstyled project-goals">
+                        <li class="mb-2"><i class="fas fa-car-battery me-2 text-primary"></i> <strong>Información Detallada de Autos:</strong> Proporcionar datos claros y actualizados sobre marcas, modelos, capacidades de batería, autonomía y otros detalles relevantes de autos eléctricos.</li>
+                        <li class="mb-2"><i class="fas fa-map-marked-alt me-2 text-success"></i> <strong>Infraestructura de Carga:</strong> Ofrecer información exhaustiva sobre estaciones de carga, incluyendo ubicación, tipos de conectores, potencia, horarios y costes.</li>
+                        <li class="mb-2"><i class="fas fa-hourglass-half me-2 text-warning"></i> <strong>Dificultad de Carga:</strong> Evaluar y registrar la facilidad o complejidad de la carga para distintos modelos, incluyendo tiempo de carga y requisitos de instalación.</li>
                         <li class="mb-2"><i class="fas fa-chart-line me-2 text-info"></i> <strong>Visualización de Datos Clave:</strong> Ofrecer una sección dedicada a estadísticas y gráficos interactivos que presenten tendencias del mercado, distribuciones y otros datos relevantes de manera visual.</li>
                         <li class="mb-2"><i class="fas fa-history me-2 text-secondary"></i> <strong>Historial de Registros Eliminados:</strong> Mantener un registro de elementos eliminados para auditoría y referencia, garantizando la integridad de los datos.</li>
                     </ul>

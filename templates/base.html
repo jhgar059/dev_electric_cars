@@ -22,13 +22,12 @@
             --dark-text: #1e293b;
             --border-color: #e2e8f0;
             --header-bg: #ffffff;
-            --footer-bg: #f1f5f9;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--dark-text);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: var(--light-bg);
+            color: var(--dark-text);
             display: flex;
             flex-direction: column;
             min-height: 100vh;
@@ -40,15 +39,14 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .navbar-brand .electric-icon {
-            color: var(--primary-color);
-            margin-right: 5px;
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
         }
 
         .nav-link {
-            color: var(--dark-text) !important;
             font-weight: 500;
-            margin-left: 15px;
+            color: var(--dark-text) !important;
             transition: color 0.3s ease;
         }
 
@@ -56,268 +54,331 @@
             color: var(--primary-color) !important;
         }
 
-        .hero-section {
-            background: linear-gradient(to right, var(--primary-color), #4f46e5);
-            color: white;
-            padding: 80px 0;
-            text-align: center;
-        }
-
-        .hero-section h1 {
-            font-size: 3.5rem;
-            margin-bottom: 20px;
-        }
-
-        .hero-section .electric-icon {
-            font-size: 3rem;
-            vertical-align: middle;
-            margin-right: 15px;
+        .nav-link.active {
+            color: var(--primary-color) !important;
+            border-bottom: 2px solid var(--primary-color);
         }
 
         .section-title {
             color: var(--primary-color);
-            font-weight: bold;
-            margin-bottom: 40px;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
             text-align: center;
             position: relative;
+            padding-bottom: 10px;
         }
 
         .section-title::after {
             content: '';
             position: absolute;
             left: 50%;
-            bottom: -10px;
+            bottom: 0;
             transform: translateX(-50%);
             width: 80px;
-            height: 4px;
+            height: 3px;
             background-color: var(--primary-color);
-            border-radius: 2px;
+            border-radius: 5px;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #4f46e5 100%);
+            color: white;
+            padding: 80px 0;
+            border-bottom-left-radius: 50px;
+            border-bottom-right-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .hero-section .display-4 {
+            font-size: 3.5rem;
+        }
+
+        .hero-section .lead {
+            font-size: 1.25rem;
+        }
+
+        .electric-icon {
+            color: #ffeb3b; /* Un amarillo vibrante para el rayo */
+        }
+
+        /* Animación del coche */
+        @keyframes moveCar {
+            0% {
+                transform: translateX(-50px);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateX(50px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(-50px);
+                opacity: 0.5;
+            }
+        }
+
+        .animated-car {
+            animation: moveCar 4s infinite ease-in-out;
+            display: inline-block; /* Para que la animación funcione correctamente */
+        }
+
+        .static-station {
+            /* No aplicar animación, asegurar que no se mueva */
+            display: inline-block;
+            vertical-align: middle; /* Alineación vertical si es necesario */
         }
 
         .info-block {
             background-color: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
             padding: 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             margin-bottom: 30px;
         }
 
-        .info-block h2.h4 {
-            color: var(--primary-color);
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-text);
         }
 
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+        .btn-primary, .btn-success, .btn-info, .btn-warning, .btn-danger, .btn-secondary, .btn-dark, .btn-light, .btn-outline-light {
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
         }
 
-        .btn-primary:hover {
-            background-color: #1e40af; /* Un tono más oscuro de primary-color */
-            border-color: #1e40af;
-        }
+        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); }
+        .btn-primary:hover { background-color: #1e4ed8; border-color: #1e4ed8; }
 
-        .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
+        .btn-outline-light {
+            color: white;
+            border-color: rgba(255,255,255,0.5);
         }
-
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
+        .btn-outline-light:hover {
+            background-color: rgba(255,255,255,0.1);
+            border-color: white;
             color: white;
         }
 
         .table {
-            border-color: var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         .table thead {
-            background-color: #e0f2f7; /* Un tono claro para el encabezado de tabla */
-            color: var(--dark-text);
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
         }
 
         .table-striped tbody tr:nth-of-type(odd) {
-            background-color: var(--light-bg);
+            background-color: rgba(0,0,0,.03);
         }
 
         .table-hover tbody tr:hover {
-            background-color: #f0f8ff; /* Un azul muy claro al pasar el mouse */
-        }
-
-        .form-label {
-            font-weight: 500;
-            color: var(--secondary-color);
-        }
-
-        .form-control, .form-select {
-            border-color: var(--border-color);
+            background-color: rgba(0,0,0,.075);
         }
 
         .footer {
-            background-color: var(--footer-bg);
-            color: var(--secondary-color);
+            background-color: var(--dark-text);
+            color: white;
             padding: 30px 0;
             margin-top: auto; /* Empuja el footer hacia abajo */
-            border-top: 1px solid var(--border-color);
         }
 
-        /* Animaciones para scroll */
+        .footer a {
+            color: #a78bfa;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .badge {
+            font-size: 0.85em;
+            padding: 0.5em 0.8em;
+            border-radius: 0.5rem;
+        }
+
+        .img-thumbnail-square {
+            width: 70px; /* Tamaño fijo */
+            height: 70px; /* Tamaño fijo */
+            object-fit: cover; /* Recortar la imagen para que quepa */
+            border-radius: 8px;
+        }
+
+        /* Estilos para cards de características */
+        .feature-card {
+            border: none;
+            border-radius: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+        }
+
+        .icon-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        /* Animaciones */
         .fade-in {
             opacity: 0;
             transform: translateY(20px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            animation: fadeIn 0.6s ease-out forwards;
         }
 
-        .fade-in.appear {
-            opacity: 1;
-            transform: translateY(0);
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(50px);
+            animation: fadeInUp 0.8s ease-out forwards;
         }
 
-        /* Estilos específicos para la página de inicio */
-        .electric-car-animation {
-            position: relative;
-            height: 100px;
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilos para el mapa de endpoints */
+        .endpoint-table thead th {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .endpoint-table tbody td {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        }
+
+        .endpoint-table tr:nth-child(even) {
+            background-color: #f0f4f8;
+        }
+
+        .endpoint-table code {
+            background-color: #e2e8f0;
+            padding: 3px 6px;
+            border-radius: 5px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        /* Estilos para la página de estadísticas */
+        .chart-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            min-height: 400px; /* Asegura un tamaño mínimo para el gráfico */
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
-        .electric-car-animation .fas {
-            position: absolute;
-            animation: drive 10s infinite linear;
-        }
-
-        @keyframes drive {
-            0% { left: -10%; }
-            100% { left: 110%; }
-        }
-
-        /* Estilos para gráficos */
-        .chart-container {
-            position: relative;
-            height: 400px; /* Altura fija para todos los gráficos */
-            background-color: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-        }
         .chart-container canvas {
-            max-height: 100%;
             max-width: 100%;
-        }
-
-        .img-thumbnail-square {
-            width: 80px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 0.25rem; /* Pequeño radio de borde */
-        }
-        /* Estilos específicos para los contenedores de gráficos */
-        .chart-container-home {
-            position: relative;
-            height: 250px; /* Tamaño más pequeño para la home */
-            width: 100%;
-            margin: auto;
-            max-width: 400px; /* Para que no se estiren demasiado en pantallas grandes */
-        }
-
-        .chart-container-large {
-            position: relative;
-            height: 400px; /* Un tamaño más grande para la página de estadísticas */
-            width: 100%;
-            margin: auto;
-            max-width: 600px; /* Ajusta según tus preferencias */
-        }
-        /* Asegúrate de que los canvas dentro de estos contenedores sean flexibles */
-        .chart-container-home canvas,
-        .chart-container-large canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-            /* Estilos específicos para los contenedores de gráficos */
-        .chart-container-home {
-            position: relative;
-            height: 250px; /* Tamaño más pequeño para la home */
-            width: 100%;
-            margin: auto;
-            max-width: 400px; /* Para que no se estiren demasiado en pantallas grandes */
-        }
-
-        .chart-container-large {
-            position: relative;
-            height: 400px; /* Un tamaño más grande para la página de estadísticas */
-            width: 100%;
-            margin: auto;
-            max-width: 600px; /* Ajusta según tus preferencias */
-        }
-        /* Asegúrate de que los canvas dentro de estos contenedores sean flexibles */
-        .chart-container-home canvas,
-        .chart-container-large canvas {
-            width: 100% !important;
-            height: 100% !important;
+            max-height: 100%;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">
-                <i class="fas fa-bolt electric-icon"></i> Electric Cars DB
+            <a class="navbar-brand" href="{{ url_for('read_root') }}">
+                <i class="fas fa-charging-station me-2"></i>Electric Cars DB
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('read_root') }}"><i class="fas fa-home me-1"></i> Inicio</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownData" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-database me-1"></i> Datos
+                        <a class="nav-link {% if request.url_rule.endpoint == 'read_root' %}active{% endif %}"
+                            href="{{ url_for('read_root') }}">
+                            <i class="fas fa-home me-1"></i> Inicio
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownData">
-                            <li><a class="dropdown-item" href="{{ url_for('cars_page') }}">Autos Eléctricos</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('charges_page') }}">Dificultad de Carga</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('stations_page') }}">Estaciones de Carga</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('deleted_cars_page') }}">Autos Eliminados</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('deleted_charges_page') }}">Cargas Eliminadas</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('deleted_stations_page') }}">Estaciones Eliminadas</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownInfo" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-info-circle me-1"></i> Info Proyecto
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownInfo">
-                            <li><a class="dropdown-item" href="{{ url_for('project_objective_page') }}">Objetivo del Proyecto</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('planning_design_page') }}">Planeación y Diseño</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('mockups_wireframes_page') }}">Mockups y Wireframes</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('endpoint_map_page') }}">Mapa de Endpoints</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('developer_info_page') }}">Acerca del Desarrollador</a></li>
-                        </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('statistics_page') }}"><i class="fas fa-chart-bar me-1"></i> Estadísticas</a>
+                        <a class="nav-link {% if request.url_rule.endpoint == 'cars_page' %}active{% endif %}"
+                            href="{{ url_for('cars_page') }}">
+                            <i class="fas fa-car me-1"></i> Autos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.url_rule.endpoint == 'charges_page' %}active{% endif %}"
+                            href="{{ url_for('charges_page') }}">
+                            <i class="fas fa-bolt me-1"></i> Cargas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.url_rule.endpoint == 'stations_page' %}active{% endif %}"
+                            href="{{ url_for('stations_page') }}">
+                            <i class="fas fa-charging-station me-1"></i> Estaciones
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.url_rule.endpoint in ['deleted_cars_page', 'deleted_charges_page', 'deleted_stations_page'] %}active{% endif %}" href="#" id="navbarDropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-history me-1"></i> Historial
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownReports">
+                            <li><a class="dropdown-item {% if request.url_rule.endpoint == 'deleted_cars_page' %}active{% endif %}" href="{{ url_for('deleted_cars_page') }}"><i class="fas fa-car-crash me-1"></i> Autos Eliminados</a></li>
+                            <li><a class="dropdown-item {% if request.url_rule.endpoint == 'deleted_charges_page' %}active{% endif %}" href="{{ url_for('deleted_charges_page') }}"><i class="fas fa-charging-station me-1"></i> Cargas Eliminadas</a></li>
+                            <li><a class="dropdown-item {% if request.url_rule.endpoint == 'deleted_stations_page' %}active{% endif %}" href="{{ url_for('deleted_stations_page') }}"><i class="fas fa-map-marker-alt me-1"></i> Estaciones Eliminadas</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.url_rule.endpoint in ['project_objective_page', 'planning_design_page', 'mockups_wireframes_page', 'developer_info_page', 'endpoint_map_page', 'statistics_page'] %}active{% endif %}" href="#" id="navbarDropdownInfo" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-info-circle me-1"></i> Info
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownInfo">
+                            <li><a class="dropdown-item {% if request.url_rule.endpoint == 'project_objective_page' %}active{% endif %}" href="{{ url_for('project_objective_page') }}"><i class="fas fa-bullseye me-1"></i> Objetivo del Proyecto</a></li>
+                            <li><a class="dropdown-item {% if request.url_rule.endpoint == 'planning_design_page' %}active{% endif %}" href="{{ url_for('planning_design_page') }}"><i class="fas fa-pencil-ruler me-1"></i> Planeación y Diseño</a></li>
+                            <li><a class="dropdown-item {% if request.url_rule.endpoint == 'mockups_wireframes_page' %}active{% endif %}" href="{{ url_for('mockups_wireframes_page') }}"><i class="fas fa-drafting-compass me-1"></i> Mockups y Wireframes</a></li>
+                            <li><a class="dropdown-item {% if request.url_rule.endpoint == 'endpoint_map_page' %}active{% endif %}" href="{{ url_for('endpoint_map_page') }}"><i class="fas fa-sitemap me-1"></i> Mapa de Endpoints</a></li>
+                            <li><a class="dropdown-item {% if request.url_rule.endpoint == 'statistics_page' %}active{% endif %}" href="{{ url_for('statistics_page') }}"><i class="fas fa-chart-bar me-1"></i> Estadísticas</a></li>
+                            <li><a class="dropdown-item {% if request.url_rule.endpoint == 'developer_info_page' %}active{% endif %}" href="{{ url_for('developer_info_page') }}"><i class="fas fa-code me-1"></i> Desarrollador</a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <main class="flex-grow-1">
+    <main class="flex-grow-1 mt-5 pt-4"> {# Añadido mt-5 pt-4 para compensar el fixed-top navbar #}
         {% block content %}{% endblock %}
     </main>
 
     <footer class="footer mt-auto py-3">
         <div class="container text-center">
-            <span class="text-muted">© 2025 Electric Cars Database. Desarrollado por [Jhon].</span>
+            <span class="text-muted">© 2024 Electric Cars Database. Todos los derechos reservados.</span>
+            <div class="mt-2">
+                <a href="{{ url_for('developer_info_page') }}" class="text-info">Contacto</a> |
+                <a href="{{ url_for('endpoint_map_page') }}" class="text-info">API Docs</a>
+            </div>
         </div>
     </footer>
 
@@ -325,16 +386,12 @@
     <script>
         // Función para animar elementos al hacer scroll
         function animateOnScroll() {
-            const elements = document.querySelectorAll('.info-block, .section-title, .chart-container, .hero-section h1, .hero-section p, .hero-section .btn');
-
+            const elements = document.querySelectorAll('.fade-in, .fade-in-up');
             const observer = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        entry.target.classList.add('fade-in', 'appear');
-                        observer.unobserve(entry.target); // Dejar de observar una vez que aparece
-                    } else {
-                        // Opcional: Para repetir la animación al scrollear de nuevo (descomentar si se desea)
-                        // entry.target.classList.remove('appear');
+                        entry.target.classList.add('show-animation'); // Una clase para activar la animación
+                        observer.unobserve(entry.target);
                     }
                 });
             }, {
