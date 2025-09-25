@@ -8,3 +8,4 @@ pandas==2.2.2
 gunicorn==22.0.0
 python-multipart==0.0.9
 loguru==0.7.2
+pip>=24.0
