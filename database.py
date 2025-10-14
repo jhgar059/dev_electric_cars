@@ -88,3 +88,14 @@ def get_db():
         yield db
     finally:
         db.close()
+
+    if SQLALCHEMY_DATABASE_URL.startswith("postgresql"):
+        # Render usa PostgreSQL: aplica SSL
+        engine = create_engine(
+            SQLALCHEMY_DATABASE_URL,
+            connect_args={
+                "sslmode": "require"  # Clave para Render
+            }
+        )
+        print("INFO: Usando conexión PostgreSQL con SSL.")
+    # ...

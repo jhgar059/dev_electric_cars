@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float, Boolean, inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError  # Importa IntegrityError
+from sqlalchemy import func, text # en migrate_csv_to_db.py
 
 # Importar explícitamente los modelos SQL para que Base.metadata los reconozca
 from models_sql import (
@@ -30,6 +31,50 @@ logger.info(f"Conectando a la base de datos para migración...")
 # Definir la metadata de la base de datos
 metadata = MetaData()
 
+
+# Dentro de migrate_csv_to_db.py, añadir la siguiente función:
+
+def reset_sequence_ids(db: Session, model_class, table_name):
+    """Resetea el contador de secuencia de la tabla de PostgreSQL al max(id) + 1."""
+    try:
+        max_id = db.query(func.max(model_class.id)).scalar()
+        if max_id is not None:
+            # PostgreSQL necesita esta sentencia para resetear el contador de secuencia
+            # El nombre de la secuencia es típicamente <nombre_tabla>_<nombre_columna>_seq
+            sequence_name = f"{table_name}_id_seq"
+            # Ojo: SQLAlchemy 2.0+ a veces maneja esto automáticamente, pero para forzar:
+            db.execute(text(f"SELECT setval('{sequence_name}', {max_id}, true);"))
+            db.commit()
+            logger.info(f"✅ Secuencia de ID para {table_name} reseteada a {max_id + 1}.")
+    except Exception as e:
+        logger.warning(f"⚠️ No se pudo resetear la secuencia de ID para {table_name}: {e}")
+        db.rollback()
+
+
+# Al final de la función main() en migrate_csv_to_db.py:
+def main():
+    # ... (código existente para migrar CSV) ...
+
+    # ------------------ RESETEAR SECUENCIAS ------------------
+    db = SessionLocal()
+    try:
+        logger.info("Reseteando secuencias de ID en la base de datos...")
+        from models_sql import AutoElectricoSQL, CargaSQL, EstacionSQL
+
+        reset_sequence_ids(db, AutoElectricoSQL, "autos_electricos")
+        reset_sequence_ids(db, CargaSQL, "cargas")  # Asumiendo que tu tabla es 'cargas'
+        reset_sequence_ids(db, EstacionSQL, "estaciones_carga")
+
+        # Las tablas eliminadas no necesitan reset de secuencia ya que no se insertan nuevos registros en ellas.
+
+    finally:
+        db.close()
+
+    logger.info("✨ Migración de CSV completada.")
+
+
+if __name__ == "__main__":
+    main()
 
 # Función para convertir tipos de datos para AutoElectrico
 def conversion_tipo_auto(fila: dict) -> dict:
