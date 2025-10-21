@@ -11,6 +11,15 @@ from pathlib import Path
 import shutil
 from sqlalchemy import func  # Importar func para estadísticas
 
+import os
+from sqlalchemy import create_engine
+
+# Obtener la URL de la base de datos
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+# Si usas SQLAlchemy
+engine = create_engine(DATABASE_URL)
+
 # Configuración de logging
 logging.basicConfig(
     level=logging.INFO,
