@@ -10,15 +10,13 @@ from sqlalchemy.orm import Session
 from pathlib import Path
 import shutil
 from sqlalchemy import func  # Importar func para estadísticas
-
 import os
 from sqlalchemy import create_engine
 
-# Obtener la URL de la base de datos
+# ✅ CORRECTO - Lee la variable de entorno
 DATABASE_URL = os.getenv('DATABASE_URL')
-
-# Si usas SQLAlchemy
-engine = create_engine(DATABASE_URL)
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Configuración de logging
 logging.basicConfig(
