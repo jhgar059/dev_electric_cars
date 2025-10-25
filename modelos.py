@@ -118,7 +118,7 @@ class CambioPassword(BaseModel):
             raise ValueError('La nueva contraseña debe contener al menos un número.')
         return v
 
-    @Field.validator('password_nueva_confirmacion')
+    @validator('password_nueva_confirmacion')
     def passwords_match(cls, v, values, **kwargs):
         if 'password_nueva' in values and v != values['password_nueva']:
             raise ValueError('Las contraseñas no coinciden.')
