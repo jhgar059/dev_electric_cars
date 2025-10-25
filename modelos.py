@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr, validator
 from typing import Optional
 
 # ------------------ Modelos para Autos Eléctricos ------------------
@@ -81,11 +81,6 @@ class EstacionActualizada(BaseModel):
     operador: Optional[str] = Field(None, min_length=2, max_length=50)
     url_imagen: Optional[str] = Field(None, max_length=255)
 
-
-
-from pydantic import BaseModel, Field, EmailStr
-from typing import Optional
-
 class UsuarioBase(BaseModel):
     nombre: str = Field(..., min_length=2, max_length=50)
     edad: Optional[int] = Field(None, gt=0, le=120)
@@ -97,7 +92,7 @@ class UsuarioRegistro(UsuarioBase):
     password: str = Field(..., min_length=8, description="Debe contener al menos 8 caracteres y un número.")
 
     # Pydantic valida que la contraseña cumpla los requisitos
-    @Field.validator('password')
+    @validator('password')
     def validate_password(cls, v):
         if len(v) < 8:
             raise ValueError('La contraseña debe tener al menos 8 caracteres.')
