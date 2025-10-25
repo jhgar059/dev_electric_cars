@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import BaseModel, Field, validator
 from typing import Optional
 
 # ------------------ Modelos para Autos Eléctricos ------------------
@@ -110,7 +110,7 @@ class CambioPassword(BaseModel):
     password_nueva: str = Field(..., min_length=8)
     password_nueva_confirmacion: str = Field(..., min_length=8)
 
-    @Field.validator('password_nueva', 'password_nueva_confirmacion')
+    @validator('password_nueva', 'password_nueva_confirmacion')
     def validate_new_password(cls, v):
         if len(v) < 8:
             raise ValueError('La nueva contraseña debe tener al menos 8 caracteres.')
