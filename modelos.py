@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, EmailStr
 from typing import Optional
 
 # ------------------ Modelos para Autos Eléctricos ------------------
@@ -82,9 +82,9 @@ class EstacionActualizada(BaseModel):
     url_imagen: Optional[str] = Field(None, max_length=255)
 
 class UsuarioBase(BaseModel):
+    correo: EmailStr
     nombre: str = Field(..., min_length=2, max_length=50)
     edad: Optional[int] = Field(None, gt=0, le=120)
-    correo: EmailStr
     cedula: str = Field(..., min_length=5, max_length=20)
     celular: Optional[str] = Field(None, min_length=7, max_length=20)
 
