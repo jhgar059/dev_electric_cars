@@ -1,10 +1,11 @@
-# Contenido de models_sql.py
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from pydantic import BaseModel, Field
 from typing import Optional
-
 from database import Base
+from datetime import datetime
+
+
 
 # ------------------ Modelos de SQLAlchemy para la DB ------------------
 
@@ -91,10 +92,6 @@ class EstacionEliminadaSQL(Base):
     operador = Column(String(50), nullable=False)
     url_imagen = Column(String(255), nullable=True) # Nuevo campo
 
-    from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime
-    from datetime import datetime
-    from database import Base
-
     class UsuarioSQL(Base):
         __tablename__ = "usuarios"
 
@@ -111,4 +108,4 @@ class EstacionEliminadaSQL(Base):
 
         # Control
         fecha_registro = Column(DateTime, default=datetime.utcnow)
-        activo = Column(Boolean, default=True)  # Para desactivar cuentas si es necesario
+        activo = Column(Boolean, default=True)
