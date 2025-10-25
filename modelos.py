@@ -80,3 +80,51 @@ class EstacionActualizada(BaseModel):
     coste_por_kwh: Optional[float] = Field(None, ge=0, le=1)
     operador: Optional[str] = Field(None, min_length=2, max_length=50)
     url_imagen: Optional[str] = Field(None, max_length=255)
+
+
+
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional
+
+class UsuarioBase(BaseModel):
+    nombre: str = Field(..., min_length=2, max_length=50)
+    edad: Optional[int] = Field(None, gt=0, le=120)
+    correo: EmailStr
+    cedula: str = Field(..., min_length=5, max_length=20)
+    celular: Optional[str] = Field(None, min_length=7, max_length=20)
+
+class UsuarioRegistro(UsuarioBase):
+    password: str = Field(..., min_length=8, description="Debe contener al menos 8 caracteres y un número.")
+
+    # Pydantic valida que la contraseña cumpla los requisitos
+    @Field.validator('password')
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('La contraseña debe tener al menos 8 caracteres.')
+        if not any(char.isdigit() for char in v):
+            raise ValueError('La contraseña debe contener al menos un número.')
+        return v
+
+class UsuarioLogin(BaseModel):
+    cedula_o_correo: str
+    password: str
+
+class CambioPassword(BaseModel):
+    identificador: str # Cedula o correo
+    password_anterior: Optional[str] = None # Campo opcional si se usa la cedula como identificador
+    password_nueva: str = Field(..., min_length=8)
+    password_nueva_confirmacion: str = Field(..., min_length=8)
+
+    @Field.validator('password_nueva', 'password_nueva_confirmacion')
+    def validate_new_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('La nueva contraseña debe tener al menos 8 caracteres.')
+        if not any(char.isdigit() for char in v):
+            raise ValueError('La nueva contraseña debe contener al menos un número.')
+        return v
+
+    @Field.validator('password_nueva_confirmacion')
+    def passwords_match(cls, v, values, **kwargs):
+        if 'password_nueva' in values and v != values['password_nueva']:
+            raise ValueError('Las contraseñas no coinciden.')
+        return v

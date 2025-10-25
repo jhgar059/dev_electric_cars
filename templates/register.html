@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Registro de Usuario{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="section-title text-center mb-4">Crear Nueva Cuenta</h1>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="info-block p-4 shadow-lg">
+
+                {% if error_message %}
+                <div class="alert alert-danger fade-in" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error_message }}
+                </div>
+                {% endif %}
+
+                <form action="{{ url_for('register_user') }}" method="post" id="registerForm" novalidate>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nombre" class="form-label"><i class="fas fa-user me-2"></i>Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required minlength="2" value="{{ form_data.get('nombre', '') if form_data else '' }}">
+                            <div class="invalid-feedback">El nombre es obligatorio y debe tener al menos 2 caracteres.</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edad" class="form-label"><i class="fas fa-birthday-cake me-2"></i>Edad (Opcional)</label>
+                            <input type="number" class="form-control" id="edad" name="edad" min="1" max="120" value="{{ form_data.get('edad', '') if form_data else '' }}">
+                            <div class="invalid-feedback">La edad debe ser un número válido.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="correo" class="form-label"><i class="fas fa-envelope me-2"></i>Correo Electrónico</label>
+                        <input type="email" class="form-control" id="correo" name="correo" required value="{{ form_data.get('correo', '') if form_data else '' }}">
+                        <div class="invalid-feedback">Por favor, introduce un correo electrónico válido.</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cedula" class="form-label"><i class="fas fa-id-card me-2"></i>Cédula</label>
+                            <input type="text" class="form-control" id="cedula" name="cedula" required minlength="5" value="{{ form_data.get('cedula', '') if form_data else '' }}">
+                            <div class="invalid-feedback">La cédula es obligatoria y debe tener al menos 5 caracteres.</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="celular" class="form-label"><i class="fas fa-phone me-2"></i>Celular (Opcional)</label>
+                            <input type="tel" class="form-control" id="celular" name="celular" value="{{ form_data.get('celular', '') if form_data else '' }}">
+                            <div class="invalid-feedback">Número de celular inválido.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label"><i class="fas fa-lock me-2"></i>Contraseña</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" required minlength="8" oninput="validatePassword(this)">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="fas fa-eye-slash"></i>
+                            </button>
+                            <div class="invalid-feedback">La contraseña debe tener **mínimo 8 caracteres** y **al menos un número**.</div>
+                        </div>
+                        <small class="form-text text-muted">Mínimo 8 caracteres, incluyendo al menos un número.</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-lg"><i class="fas fa-user-check me-2"></i>Registrar Cuenta</button>
+                </form>
+
+                <p class="text-center mt-3 mb-0">
+                    ¿Ya tienes cuenta? <a href="{{ url_for('login_form') }}" class="text-primary">Inicia Sesión aquí</a>
+                </p>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Script de Validación de Contraseña
+    const passwordInput = document.getElementById('password');
+    const toggleButton = document.getElementById('togglePassword');
+    const invalidFeedback = passwordInput.nextElementSibling.nextElementSibling;
+
+    function validatePassword(input) {
+        const password = input.value;
+        const isValidLength = password.length >= 8;
+        const hasNumber = /\d/.test(password);
+
+        if (isValidLength && hasNumber) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+            // Mostrar un mensaje más específico si es necesario
+            if (!isValidLength) {
+                invalidFeedback.innerText = "La contraseña debe tener al menos 8 caracteres.";
+            } else if (!hasNumber) {
+                invalidFeedback.innerText = "La contraseña debe contener al menos un número.";
+            }
+        }
+    }
+
+    toggleButton.addEventListener('click', function (e) {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+
+        // Cambiar el icono
+        this.querySelector('i').classList.toggle('fa-eye');
+        this.querySelector('i').classList.toggle('fa-eye-slash');
+    });
+
+    // Validación de Bootstrap 5
+    document.getElementById('registerForm').addEventListener('submit', function (event) {
+        if (!this.checkValidity() || passwordInput.classList.contains('is-invalid')) {
+            event.preventDefault();
+            event.stopPropagation();
+            validatePassword(passwordInput); // Re-validar por si acaso
+        }
+        this.classList.add('was-validated');
+    }, false);
+
+    // Asegurar que la contraseña se valida al cargar si hay datos
+    if (passwordInput.value) {
+        validatePassword(passwordInput);
+    }
+</script>
+{% endblock %}

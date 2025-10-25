@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Bienvenido - Electric Cars Database{% endblock %}
+
+{% block content %}
+<section class="hero-section text-center bg-primary text-white py-5">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-4">
+            <i class="fas fa-bolt me-3"></i>
+            Bienvenido a Electric Cars Database
+        </h1>
+        <p class="lead mb-5">
+            Tu puerta de acceso a la información más completa sobre vehículos y estaciones de carga eléctricas.
+            ¡Únete a nuestra comunidad para empezar a explorar!
+        </p>
+    </div>
+</section>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="text-center section-title mb-4">¿Qué quieres hacer?</h2>
+
+            <div class="row text-center">
+
+                <div class="col-sm-6 col-lg-3 mb-3">
+                    <a href="{{ url_for('login_form') }}" class="card card-hover shadow-lg p-3 h-100 text-decoration-none border-primary">
+                        <div class="card-body">
+                            <i class="fas fa-sign-in-alt fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Iniciar Sesión</h5>
+                            <p class="card-text text-muted">Accede con tu cédula o correo y contraseña.</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-sm-6 col-lg-3 mb-3">
+                    <a href="{{ url_for('register_form') }}" class="card card-hover shadow-lg p-3 h-100 text-decoration-none border-success">
+                        <div class="card-body">
+                            <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Registro</h5>
+                            <p class="card-text text-muted">Crea una nueva cuenta de usuario.</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-sm-6 col-lg-3 mb-3">
+                    <a href="{{ url_for('login_form') }}" class="card card-hover shadow-lg p-3 h-100 text-decoration-none border-info">
+                        <div class="card-body">
+                            <i class="fas fa-key fa-3x text-info mb-3"></i>
+                            <h5 class="card-title">Contraseña</h5>
+                            <p class="card-text text-muted">Ir a la página de inicio de sesión.</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-sm-6 col-lg-3 mb-3">
+                    <a href="{{ url_for('change_password_form') }}" class="card card-hover shadow-lg p-3 h-100 text-decoration-none border-warning">
+                        <div class="card-body">
+                            <i class="fas fa-lock fa-3x text-warning mb-3"></i>
+                            <h5 class="card-title">Cambio de Contraseña</h5>
+                            <p class="card-text text-muted">Modifica tu contraseña actual.</p>
+                        </div>
+                    </a>
+                </div>
+
+            </div>
+
+            {% if request.query_params.get('success_message') %}
+            <div class="alert alert-success mt-4 fade-in" role="alert">
+                {{ request.query_params.get('success_message') }}
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+    .card-hover:hover {
+        transform: translateY(-5px);
+        transition: transform 0.3s ease;
+    }
+</style>
+{% endblock %}

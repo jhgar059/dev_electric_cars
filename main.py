@@ -395,3 +395,194 @@ async def get_charge_difficulty_distribution_stats(db: Session = Depends(get_db)
     ).group_by(models_sql.CargaSQL.dificultad_carga).all()
 
     return [{"dificultad": difficulty, "count": count} for difficulty, count in stats]
+
+
+from fastapi import FastAPI, HTTPException, Depends, Request, File, UploadFile, Form, status, Response
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from database import get_db, engine, Base
+import models_sql
+import crud
+import crud_usuarios as user_crud
+from modelos import UsuarioRegistro, UsuarioLogin, CambioPassword
+from auth_utils import get_password_hash, verify_password, get_current_user
+models_sql.Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="Electric Cars Database API",
+    description="API RESTful para la gestión de datos de autos y estaciones de carga eléctricas.",
+    version="1.0.0",
+)
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/", response_class=HTMLResponse, summary="Página de Bienvenida y Login/Registro")
+async def welcome_page(request: Request):
+    """Muestra la página de bienvenida con las opciones de login/registro."""
+    return templates.TemplateResponse("welcome.html", {"request": request})
+
+
+@app.get("/register", response_class=HTMLResponse, summary="Página de Registro")
+async def register_form(request: Request):
+    """Muestra el formulario de registro de usuario."""
+    return templates.TemplateResponse("register.html", {"request": request})
+
+
+@app.get("/login", response_class=HTMLResponse, summary="Página de Login")
+async def login_form(request: Request):
+    """Muestra el formulario de login (contraseña)."""
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.get("/change_password", response_class=HTMLResponse, summary="Página de Cambio de Contraseña")
+async def change_password_form(request: Request):
+    """Muestra el formulario de cambio de contraseña."""
+    return templates.TemplateResponse("change_password.html", {"request": request})
+
+@app.post("/api/register", summary="Registrar un nuevo usuario")
+async def register_user(
+        request: Request,
+        nombre: str = Form(...),
+        edad: Optional[int] = Form(None),
+        correo: str = Form(...),
+        cedula: str = Form(...),
+        celular: Optional[str] = Form(None),
+        password: str = Form(...),
+        db: Session = Depends(get_db)
+):
+    try:
+
+        user_data = UsuarioRegistro(
+            nombre=nombre, edad=edad, correo=correo, cedula=cedula, celular=celular, password=password
+        )
+
+        # 2. Verificar duplicados (cédula o correo)
+        if user_crud.get_user_by_cedula(db, user_data.cedula):
+            raise HTTPException(status_code=400, detail="La cédula ya está registrada.")
+        if user_crud.get_user_by_correo(db, user_data.correo):
+            raise HTTPException(status_code=400, detail="El correo ya está registrado.")
+
+        # 3. Crear el usuario
+        db_user = user_crud.create_user(db, user_data)
+
+        # Redirigir al login
+        response = RedirectResponse(url="/login?success_message=Registro exitoso. Por favor, inicia sesión.",
+                                    status_code=status.HTTP_303_SEE_OTHER)
+        return response
+
+    except ValueError as e:
+        # Captura errores de validación de Pydantic
+        return templates.TemplateResponse("register.html",
+                                          {"request": request, "error_message": f"Error de validación: {e}",
+                                           "form_data": dict(request.form)})
+    except HTTPException as e:
+        # Captura errores de duplicados
+        return templates.TemplateResponse("register.html", {"request": request, "error_message": e.detail,
+                                                            "form_data": dict(request.form)})
+
+
+@app.post("/api/login", summary="Autenticar un usuario y generar una cookie de sesión")
+async def login_user(
+        request: Request,
+        cedula_o_correo: str = Form(...),
+        password: str = Form(...),
+        db: Session = Depends(get_db)
+):
+    # Buscar al usuario
+    user = user_crud.get_user_by_cedula_or_correo(db, cedula_o_correo)
+
+    if user and verify_password(password, user.hashed_password):
+
+        response = RedirectResponse(url="/index", status_code=status.HTTP_302_FOUND)
+        response.set_cookie(key="session_user", value=user.cedula, max_age=3600, httponly=True)
+        return response
+
+    # Autenticación fallida
+    return templates.TemplateResponse("login.html",
+                                      {"request": request, "error_message": "Cédula/Correo o contraseña incorrectos."})
+
+
+@app.post("/api/change_password", summary="Cambiar la contraseña de un usuario")
+async def handle_change_password(
+        request: Request,
+        identificador: str = Form(...),
+        password_anterior: Optional[str] = Form(None),
+        password_nueva: str = Form(...),
+        password_nueva_confirmacion: str = Form(...),
+        db: Session = Depends(get_db)
+):
+    try:
+        # 1. Validar coincidencia de contraseñas y requisitos de Pydantic
+        change_data = CambioPassword(
+            identificador=identificador,
+            password_anterior=password_anterior,
+            password_nueva=password_nueva,
+            password_nueva_confirmacion=password_nueva_confirmacion
+        )
+
+        # 2. Buscar al usuario
+        user = user_crud.get_user_by_cedula_or_correo(db, change_data.identificador)
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+
+        # 3. Verificar contraseña anterior si fue proporcionada
+        if password_anterior and not verify_password(password_anterior, user.hashed_password):
+            raise HTTPException(status_code=400, detail="La contraseña anterior es incorrecta.")
+
+        # 4. Actualizar la contraseña
+        user_crud.update_user_password(db, user.id, change_data.password_nueva)
+
+        response = RedirectResponse(
+            url="/login?success_message=Contraseña actualizada exitosamente. Inicia sesión con la nueva contraseña.",
+            status_code=status.HTTP_303_SEE_OTHER)
+        return response
+
+    except ValueError as e:
+        return templates.TemplateResponse("change_password.html",
+                                          {"request": request, "error_message": f"Error de validación: {e}",
+                                           "form_data": dict(request.form)})
+    except HTTPException as e:
+        return templates.TemplateResponse("change_password.html", {"request": request, "error_message": e.detail,
+                                                                   "form_data": dict(request.form)})
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    # Rutas que no requieren autenticación
+    public_paths = ["/", "/register", "/login", "/change_password", "/api/register", "/api/login",
+                    "/api/change_password", "/static"]
+
+    # Comprobar si la ruta solicitada es pública o si es un recurso estático
+    is_public_path = any(request.url.path.startswith(path) for path in public_paths)
+
+    session_cookie = request.cookies.get("session_user")
+
+    # Si la ruta no es pública y no hay cookie de sesión, redirigir al login
+    if not is_public_path and not session_cookie:
+        # Evitar el redireccionamiento para las rutas de API
+        if request.url.path.startswith("/api/"):
+            return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": "No autenticado."})
+
+        # Redirigir las peticiones de vista HTML
+        response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+        return response
+
+    response = await call_next(request)
+    return response
+
+
+@app.get("/index", response_class=HTMLResponse, summary="Página de Inicio Principal")
+async def index_page(request: Request):
+    """Muestra la página de inicio real, accesible solo si hay sesión."""
+    # El middleware ya protege esta ruta, pero puedes añadir lógica de usuario aquí
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+
+@app.get("/cars", response_class=HTMLResponse, summary="Página de Autos Eléctricos")
+async def cars_page(request: Request, db: Session = Depends(get_db)):
+    # ... tu lógica actual para obtener autos
+    autos = crud.get_autos(db, skip=0, limit=100)
+    # ... (Si necesitas pasar la cookie de sesión a la plantilla para mostrar el nombre, usa request.cookies.get("session_user"))
+    return templates.TemplateResponse("cars.html", {"request": request, "autos": autos})

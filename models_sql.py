@@ -90,3 +90,25 @@ class EstacionEliminadaSQL(Base):
     coste_por_kwh = Column(Float, nullable=False)
     operador = Column(String(50), nullable=False)
     url_imagen = Column(String(255), nullable=True) # Nuevo campo
+
+    from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime
+    from datetime import datetime
+    from database import Base
+
+    class UsuarioSQL(Base):
+        __tablename__ = "usuarios"
+
+        id = Column(Integer, primary_key=True, index=True)
+        # Datos de registro
+        nombre = Column(String(50), nullable=False)
+        edad = Column(Integer, nullable=True)  # Puede ser opcional, aunque lo pides
+        correo = Column(String(100), unique=True, index=True, nullable=False)
+        cedula = Column(String(20), unique=True, index=True, nullable=False)
+        celular = Column(String(20), nullable=True)
+
+        # Seguridad
+        hashed_password = Column(String(255), nullable=False)  # Contraseña encriptada
+
+        # Control
+        fecha_registro = Column(DateTime, default=datetime.utcnow)
+        activo = Column(Boolean, default=True)  # Para desactivar cuentas si es necesario
