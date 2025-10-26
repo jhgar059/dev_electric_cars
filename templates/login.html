@@ -22,18 +22,24 @@
                 </div>
                 {% endif %}
 
-                <form action="{{ url_for('login_user') }}" method="post" id="loginForm">
+                <form action="/api/login" method="post" id="loginForm">
 
                     <div class="mb-3">
-                        <label for="identificador" class="form-label"><i class="fas fa-id-card me-2"></i>Cédula o Correo</label>
-                        <input type="text" class="form-control" id="identificador" name="cedula_o_correo" required>
+                        <label for="identificador" class="form-label">
+                            <i class="fas fa-id-card me-2"></i>Cédula o Correo
+                        </label>
+                        <input type="text" class="form-control" id="identificador"
+                               name="cedula_o_correo" required>
                         <div class="invalid-feedback">Este campo es obligatorio.</div>
                     </div>
 
                     <div class="mb-4">
-                        <label for="password" class="form-label"><i class="fas fa-lock me-2"></i>Contraseña</label>
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock me-2"></i>Contraseña
+                        </label>
                         <div class="input-group">
-                            <input type="password" class="form-control" id="password" name="password" required minlength="1">
+                            <input type="password" class="form-control" id="password"
+                                   name="password" required minlength="1">
                             <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                 <i class="fas fa-eye-slash"></i>
                             </button>
@@ -41,11 +47,16 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 btn-lg"><i class="fas fa-sign-in-alt me-2"></i>Entrar</button>
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                    </button>
                 </form>
 
                 <p class="text-center mt-3 mb-0">
-                    ¿No tienes cuenta? <a href="{{ url_for('register_form') }}" class="text-primary">Regístrate</a>
+                    ¿No tienes cuenta? <a href="/register" class="text-primary">Regístrate</a>
+                </p>
+                <p class="text-center mt-2 mb-0">
+                    <a href="/change_password" class="text-secondary">¿Olvidaste tu contraseña?</a>
                 </p>
 
             </div>
@@ -56,15 +67,12 @@
 
 {% block scripts %}
 <script>
-    // Script de Toggle para la Contraseña
     const passwordInput = document.getElementById('password');
     const toggleButton = document.getElementById('togglePassword');
 
     toggleButton.addEventListener('click', function (e) {
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
         passwordInput.setAttribute('type', type);
-
-        // Cambiar el icono
         this.querySelector('i').classList.toggle('fa-eye');
         this.querySelector('i').classList.toggle('fa-eye-slash');
     });

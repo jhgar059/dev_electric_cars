@@ -1,5 +1,4 @@
-# db_init.py
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -7,17 +6,16 @@ import logging
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 from database import engine, Base, SessionLocal
-# Importa explícitamente todas las clases de modelos que están definidas en models_sql.py
-# Esto asegura que Base.metadata "vea" todas las tablas.
+
+# Importar TODOS los modelos incluido UsuarioSQL
 from models_sql import (
     AutoElectricoSQL, AutoEliminadoSQL,
     CargaSQL, CargaEliminadaSQL,
-    EstacionSQL, EstacionEliminadaSQL
+    EstacionSQL, EstacionEliminadaSQL,
+    UsuarioSQL  # IMPORTANTE: Incluir el modelo de Usuario
 )
-# Los modelos Pydantic no son necesarios para crear tablas, pero los mantengo si tuvieras otros usos.
 from modelos import AutoElectrico, CargaBase, EstacionBase
 
-# Configurar logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -42,11 +40,19 @@ def crear_tablas():
     """Crea las tablas en la base de datos si no existen."""
     logger.info("Intentando crear tablas en la base de datos...")
     try:
-        # Base.metadata.create_all creará todas las tablas definidas en los modelos
-        # que heredan de Base. Asegúrate de que todos tus modelos SQL estén importados
-        # en este archivo o en un archivo que sea importado por este.
         Base.metadata.create_all(bind=engine)
         logger.info("✅ Tablas creadas o ya existentes.")
+
+        # Verificar que la tabla usuarios se creó
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        logger.info(f"📋 Tablas en la base de datos: {tables}")
+
+        if "usuarios" in tables:
+            logger.info("✅ Tabla 'usuarios' verificada correctamente")
+        else:
+            logger.warning("⚠️ Tabla 'usuarios' NO encontrada")
+
         return True
     except Exception as e:
         logger.error(f"❌ Error al crear tablas: {e}", exc_info=True)
@@ -56,7 +62,6 @@ def crear_tablas():
 def is_db_empty(db: Session) -> bool:
     """Verifica si alguna de las tablas principales está vacía."""
     inspector = inspect(engine)
-    # Comprobar si las tablas existen y si tienen datos
     if not inspector.has_table("autos_electricos") or db.query(AutoElectricoSQL).count() == 0:
         return True
     if not inspector.has_table("cargas") or db.query(CargaSQL).count() == 0:
@@ -71,7 +76,6 @@ def insertar_datos_de_prueba(db: Session):
     if is_db_empty(db):
         logger.info("Base de datos vacía. Insertando datos de prueba...")
 
-        # Datos de prueba para AutoElectrico
         autos_data = [
             AutoElectrico(
                 marca="Tesla",
@@ -102,7 +106,6 @@ def insertar_datos_de_prueba(db: Session):
             )
         ]
 
-        # Datos de prueba para Carga (usando CargaBase para la entrada inicial)
         cargas_data = [
             CargaBase(
                 modelo_auto="Tesla Model 3",
@@ -136,7 +139,6 @@ def insertar_datos_de_prueba(db: Session):
             )
         ]
 
-        # Datos de prueba para Estacion (usando EstacionBase para la entrada inicial)
         estaciones_data = [
             EstacionBase(
                 nombre="Supercharger Bogotá",
@@ -201,34 +203,25 @@ def listar_datos_para_verificacion(db: Session):
     logger.info("\n--- Verificación de datos en la base de datos ---")
 
     autos = db.query(AutoElectricoSQL).limit(5).all()
-    logger.info(f"Autos Eléctricos ({len(autos)} encontrados, mostrando los primeros 5):")
+    logger.info(f"Autos Eléctricos ({len(autos)} encontrados):")
     for auto in autos:
-        logger.info(f"  ID: {auto.id}, Marca: {auto.marca}, Modelo: {auto.modelo}, Año: {auto.anio}")
+        logger.info(f"  ID: {auto.id}, Marca: {auto.marca}, Modelo: {auto.modelo}")
 
     cargas = db.query(CargaSQL).limit(5).all()
-    logger.info(f"Registros de Carga ({len(cargas)} encontrados, mostrando los primeros 5):")
+    logger.info(f"Registros de Carga ({len(cargas)} encontrados):")
     for carga in cargas:
-        logger.info(f"  ID: {carga.id}, Modelo Auto: {carga.modelo_auto}, Dificultad: {carga.dificultad_carga}")
+        logger.info(f"  ID: {carga.id}, Modelo Auto: {carga.modelo_auto}")
 
     estaciones = db.query(EstacionSQL).limit(5).all()
-    logger.info(f"Estaciones de Carga ({len(estaciones)} encontrados, mostrando los primeros 5):")
+    logger.info(f"Estaciones de Carga ({len(estaciones)} encontrados):")
     for estacion in estaciones:
-        logger.info(f"  ID: {estacion.id}, Nombre: {estacion.nombre}, Ubicación: {estacion.ubicacion}")
+        logger.info(f"  ID: {estacion.id}, Nombre: {estacion.nombre}")
 
-    autos_eliminados = db.query(AutoEliminadoSQL).limit(5).all()
-    logger.info(f"Autos Eliminados ({len(autos_eliminados)} encontrados, mostrando los primeros 5):")
-    for auto_el in autos_eliminados:
-        logger.info(f"  ID: {auto_el.id}, Marca: {auto_el.marca}, Modelo: {auto_el.modelo}")
-
-    cargas_eliminadas = db.query(CargaEliminadaSQL).limit(5).all()
-    logger.info(f"Cargas Eliminadas ({len(cargas_eliminadas)} encontrados, mostrando los primeros 5):")
-    for carga_el in cargas_eliminadas:
-        logger.info(f"  ID: {carga_el.id}, Modelo Auto: {carga_el.modelo_auto}")
-
-    estaciones_eliminadas = db.query(EstacionEliminadaSQL).limit(5).all()
-    logger.info(f"Estaciones Eliminadas ({len(estaciones_eliminadas)} encontrados, mostrando los primeros 5):")
-    for estacion_el in estaciones_eliminadas:
-        logger.info(f"  ID: {estacion_el.id}, Nombre: {estacion_el.nombre}")
+    # Verificar usuarios
+    usuarios = db.query(UsuarioSQL).limit(5).all()
+    logger.info(f"Usuarios ({len(usuarios)} encontrados):")
+    for usuario in usuarios:
+        logger.info(f"  ID: {usuario.id}, Nombre: {usuario.nombre}, Cédula: {usuario.cedula}")
 
     logger.info("--- Fin de la verificación de datos ---")
 
@@ -236,40 +229,32 @@ def listar_datos_para_verificacion(db: Session):
 if __name__ == "__main__":
     logger.info("Iniciando proceso de inicialización de la base de datos...")
 
-    # Verificar conexión
     if not verificar_conexion():
-        logger.error("❌ No se pudo establecer conexión con la base de datos. Abortando.")
-        sys.exit(1)  # Salir con un código de error
+        logger.error("❌ No se pudo establecer conexión. Abortando.")
+        sys.exit(1)
 
-    # Crear tablas (solo si no existen)
     if not crear_tablas():
         logger.error("❌ Error al crear tablas. Abortando.")
-        sys.exit(1)  # Salir con un código de error
+        sys.exit(1)
 
-    # Insertar datos de prueba (solo si las tablas están vacías)
     db = SessionLocal()
     try:
         insertar_datos_de_prueba(db)
     finally:
         db.close()
 
-    # Migrar datos CSV (se ejecuta SIEMPRE para asegurar que los CSV se carguen)
-    # Esto es independiente de los datos de prueba y debería correr en cada despliegue si los CSV son la fuente de verdad.
-    logger.info("Migrando datos CSV existentes (si los hay)...")
+    logger.info("Migrando datos CSV existentes...")
     try:
-        # Importar migrate_csv_to_db aquí para evitar circular imports en el nivel superior
-        # Esto es un truco para cuando el migrador también usa Base.metadata.create_all
         import migrate_csv_to_db
 
-        migrate_csv_to_db.main()  # Ejecutar la función main del migrador
+        migrate_csv_to_db.main()
     except Exception as e:
-        logger.error(f"❌ Error al ejecutar el script de migración CSV: {e}", exc_info=True)
+        logger.error(f"❌ Error al ejecutar migración CSV: {e}", exc_info=True)
 
-    # Listar datos para verificación
-    db_session_for_listing = SessionLocal()
+    db_session = SessionLocal()
     try:
-        listar_datos_para_verificacion(db_session_for_listing)
+        listar_datos_para_verificacion(db_session)
     finally:
-        db_session_for_listing.close()
+        db_session.close()
 
-    logger.info("Proceso de inicialización de la base de datos completado.")
+    logger.info("✅ Proceso de inicialización completado.")

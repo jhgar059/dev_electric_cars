@@ -180,3 +180,13 @@ def get_estaciones_eliminadas(db: Session, skip: int = 0, limit: int = 100):
 
 def get_estacion_eliminada(db: Session, estacion_id: int):
     return db.query(models.EstacionEliminadaSQL).filter(models.EstacionEliminadaSQL.id == estacion_id).first()
+
+def get_autos_count(db: Session) -> int:
+    """Obtiene el número total de autos eléctricos."""
+    # func.count() se usa para obtener el conteo de filas
+    return db.query(func.count(models.AutoElectricoSQL.id)).scalar_one_or_none() or 0
+
+def get_average_autonomia(db: Session) -> float | None:
+    """Obtiene el promedio de autonomía de todos los autos eléctricos."""
+    # func.avg() devuelve None si no hay filas, por lo que lo manejamos en main.py
+    return db.query(func.avg(models.AutoElectricoSQL.autonomia_km)).scalar_one_or_none()

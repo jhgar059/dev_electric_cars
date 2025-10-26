@@ -28,6 +28,7 @@ if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
 
 connect_args = {}
 pool_settings = {}
+Base = declarative_base() # Definir Base aquí para que sea consistente
 
 if SQLALCHEMY_DATABASE_URL.startswith("postgresql"):
     # CONFIGURACIÓN OBLIGATORIA PARA RENDER (SSL, Memoria, Robustez)
@@ -41,7 +42,7 @@ if SQLALCHEMY_DATABASE_URL.startswith("postgresql"):
         "sslmode": "require",
     }
     logger.info("✅ PostgreSQL detectado. Aplicando SSL y pool settings.")
-else:
+elif SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
     # Conexión local con SQLite
     connect_args = {"check_same_thread": False}
     logger.info("⚠️ SQLite detectado. Modo desarrollo local.")
@@ -62,16 +63,10 @@ except Exception as e:
 
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
 
 def get_db():
-    """Dependencia para obtener la sesión de la base de datos."""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-# Exportar variables para el migrador
-DATABASE_URL = SQLALCHEMY_DATABASE_URL
