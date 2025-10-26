@@ -8,6 +8,8 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError  # Importa IntegrityError
 from sqlalchemy import func, text # en migrate_csv_to_db.py
+import pandas as pd
+from sqlalchemy.orm import Session
 
 # Importar explícitamente los modelos SQL para que Base.metadata los reconozca
 from models_sql import (
