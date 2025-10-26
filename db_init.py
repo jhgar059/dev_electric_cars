@@ -273,13 +273,3 @@ if __name__ == "__main__":
         db_session_for_listing.close()
 
     logger.info("Proceso de inicialización de la base de datos completado.")
-
-# Migrar datos CSV (se ejecuta SIEMPRE para asegurar que los CSV se carguen)
-    logger.info("Migrando datos CSV existentes (si los hay)...")
-    try:
-        # Importar migrate_csv_to_db aquí para evitar circular imports
-        import migrate_csv_to_db
-
-        migrate_csv_to_db.main()  # Ejecutar la función main del migrador
-    except Exception as e:
-        logger.error(f"❌ Error al ejecutar el script de migración CSV: {e}", exc_info=True)
