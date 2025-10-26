@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError  # Importa IntegrityError
 from sqlalchemy import func, text # en migrate_csv_to_db.py
 import pandas as pd
 from sqlalchemy.orm import Session
+import pandas as pd
 
 # Importar explícitamente los modelos SQL para que Base.metadata los reconozca
 from models_sql import (
@@ -218,3 +219,32 @@ if __name__ == "__main__":
     logger.info("Iniciando script de migración CSV a DB...")
     main()
     logger.info("Migración CSV a DB completada.")
+
+
+def migrar_csv_a_db(filepath: str, ModelSQL, conversion_func):
+    logger.info(f"Iniciando migración en chunks para {filepath}...")
+
+    try:
+        # CLAVE: usa chunksize para procesar el archivo en pequeños bloques
+        chunksize = 1000
+
+        for i, chunk in enumerate(pd.read_csv(filepath, chunksize=chunksize, encoding='utf-8')):
+            db = SessionLocal()  # Abre una nueva sesión para cada lote
+            try:
+                # 1. Convertir el chunk de Pandas a objetos de SQLAlchemy (ModelSQL)
+                data_to_insert = [conversion_func(row) for index, row in chunk.iterrows()]
+
+                # 2. Inserción masiva del lote
+                db.bulk_save_objects(data_to_insert)
+                db.commit()
+
+            except Exception as e:
+                db.rollback()
+                logger.error(f"❌ Error en lote {i + 1} de {filepath}: {e}")
+            finally:
+                db.close()  # Cierra la sesión
+
+    except FileNotFoundError:
+        logger.warning(f"⚠️ Archivo no encontrado: {filepath}")
+    except Exception as e:
+        logger.error(f"❌ Error al leer o procesar {filepath}: {e}")

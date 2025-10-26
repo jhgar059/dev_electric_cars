@@ -2,6 +2,46 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+# Obtiene la URL y corrige 'postgres://' a 'postgresql://'
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./default.db").replace("postgres://", "postgresql://", 1)
+
+connect_args = {}
+pool_settings = {}
+is_postgres = SQLALCHEMY_DATABASE_URL.startswith("postgresql")
+
+if is_postgres:
+    # Ajustes CLAVE: Pool pequeño y reciclaje de conexiones
+    pool_settings = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+        "pool_size": 5
+    }
+    connect_args = {
+        # Necesario para la conexión SSL a la DB de Render
+        "sslmode": "require",
+    }
+    print("INFO: Usando conexión PostgreSQL con pool y SSL.")
+else:
+    # Conexión local con SQLite
+    connect_args = {"check_same_thread": False}
+    print("INFO: Usando conexión SQLite local.")
+
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args=connect_args,
+    **pool_settings
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
 load_dotenv()
 
