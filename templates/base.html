@@ -306,60 +306,56 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-bolt me-2"></i>Electric Cars DB
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/cars">Autos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/charges">Cargas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/stations">Estaciones</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Historial
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/deleted_cars">Autos Eliminados</a></li>
-                            <li><a class="dropdown-item" href="/deleted_charges">Cargas Eliminadas</a></li>
-                            <li><a class="dropdown-item" href="/deleted_stations">Estaciones Eliminadas</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/statistics_page">Estadísticas</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="projectInfoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Proyecto
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="projectInfoDropdown">
-                            <li><a class="dropdown-item" href="/project_objective">Objetivo del Proyecto</a></li>
-                            <li><a class="dropdown-item" href="/planning_design">Planeación y Diseño</a></li>
-                            <li><a class="dropdown-item" href="/mockups_wireframes">Mockups y Wireframes</a></li>
-                            <li><a class="dropdown-item" href="/endpoint_map">Mapa de Endpoints</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/developer_info">Acerca del Desarrollador</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('index') }}">
+            <i class="fas fa-bolt me-2"></i>Electric Cars DB
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                {% if not is_home_page %} <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('cars_page') }}"><i class="fas fa-car me-2"></i>Autos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('charges_page') }}"><i class="fas fa-battery-full me-2"></i>Cargas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('stations_page') }}"><i class="fas fa-charging-station me-2"></i>Estaciones</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-history me-2"></i>Historial
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('deleted_cars_page') }}">Autos Eliminados</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('deleted_charges_page') }}">Cargas Eliminadas</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('deleted_stations_page') }}">Estaciones Eliminadas</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('statistics_page') }}"><i class="fas fa-chart-bar me-2"></i>Estadísticas</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProject" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-folder-open me-2"></i>Proyecto
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownProject">
+                        <li><a class="dropdown-item" href="{{ url_for('project_objective_page') }}">Objetivo</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('planning_design_page') }}">Planeación y Diseño</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('mockups_page') }}">Mockups y Wireframes</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('endpoints_page') }}">Mapa de Endpoints</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('developer_info_page') }}">Acerca del Desarrollador</a></li>
+                    </ul>
+                </li>
+                {% endif %} </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <main class="flex-grow-1">
         {% block content %}{% endblock %}

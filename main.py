@@ -417,10 +417,15 @@ app = FastAPI(
 
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/", response_class=HTMLResponse, summary="Página de Bienvenida y Login/Registro")
-async def welcome_page(request: Request):
-    """Muestra la página de bienvenida con las opciones de login/registro."""
-    return templates.TemplateResponse("welcome.html", {"request": request})
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+async def index(request: Request):
+    """Muestra la página de inicio."""
+
+
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "is_home_page": True}
+    )
 
 
 @app.get("/register", response_class=HTMLResponse, summary="Página de Registro")

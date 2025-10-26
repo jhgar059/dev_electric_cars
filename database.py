@@ -95,7 +95,11 @@ def get_db():
             SQLALCHEMY_DATABASE_URL,
             connect_args={
                 "sslmode": "require"  # Clave para Render
-            }
+            },
+            # --- AGREGAR O VERIFICAR ESTOS PARÁMETROS ---
+            pool_size=10,  # Número de conexiones activas
+            max_overflow=20,  # Número de conexiones que se pueden abrir por encima de pool_size
+            pool_recycle=3600  # Reciclar conexiones después de 1 hora
+            # ----------------------------------------------
         )
         print("INFO: Usando conexión PostgreSQL con SSL.")
-    # ...
