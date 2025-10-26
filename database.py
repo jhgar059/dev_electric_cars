@@ -6,28 +6,25 @@ import os
 load_dotenv()
 
 # 1. Obtiene la URL de la variable de entorno y corrige el prefijo
-# Render a veces usa 'postgres://' y SQLAlchemy requiere 'postgresql://'
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./default.db").replace("postgres://", "postgresql://", 1)
 
-# --- CONFIGURACIÓN DE CONEXIÓN OPTIMIZADA ---
 connect_args = {}
 pool_settings = {}
 is_postgres = SQLALCHEMY_DATABASE_URL.startswith("postgresql")
 
 if is_postgres:
-    # CLAVE 1: Configuración de pool para estabilidad y ahorro de memoria
+    # CONFIGURACIÓN CRÍTICA PARA RENDER (MEMORIA Y SSL)
     pool_settings = {
         "pool_recycle": 300,        # Reciclar la conexión cada 5 minutos
-        "pool_pre_ping": True,      # Probar la conexión antes de usarla
-        "pool_size": 5              # Límite bajo de conexiones
+        "pool_pre_ping": True,      # Probar antes de usar
+        "pool_size": 5              # Pool pequeño para ahorrar memoria
     }
-    # CLAVE 2: Configuración de SSL/TLS para Render
     connect_args = {
-        "sslmode": "require",
+        "sslmode": "require",       # CLAVE para la conexión segura en Render
     }
     print("INFO: Usando conexión PostgreSQL con pool y SSL.")
 else:
-    # Desarrollo Local: usa SQLite y permite hilos
+    # Conexión local con SQLite
     connect_args = {"check_same_thread": False}
     print("INFO: Usando conexión SQLite local.")
 
@@ -35,7 +32,7 @@ else:
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args=connect_args,
-    **pool_settings # Desempaquetar la configuración del pool
+    **pool_settings
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -49,3 +46,6 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# Exportar variables para el migrador
+DATABASE_URL = SQLALCHEMY_DATABASE_URL
