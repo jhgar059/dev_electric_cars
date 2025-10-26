@@ -102,4 +102,4 @@ def get_db():
             pool_recycle=3600  # Reciclar conexiones después de 1 hora
             # ----------------------------------------------
         )
-        print("INFO: Usando conexión PostgreSQL con SSL.")
+        print("INFO: Usando la conexión PostgreSQL con SSL.")
