@@ -1,250 +1,199 @@
 #!/usr/bin/env python
 
-import csv
 import os
 import logging
-from dotenv import load_dotenv
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float, Boolean, inspect
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import IntegrityError  # Importa IntegrityError
-from sqlalchemy import func, text # en migrate_csv_to_db.py
+import sys
 import pandas as pd
 from sqlalchemy.orm import Session
-import pandas as pd
-
-# Importar explícitamente los modelos SQL para que Base.metadata los reconozca
-from models_sql import (
-    AutoElectricoSQL, CargaSQL, EstacionSQL,
-    AutoEliminadoSQL, CargaEliminadaSQL, EstacionEliminadaSQL
-)
-from database import DATABASE_URL, Base, engine  # Importar el engine y Base de database.py para consistencia
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func, text, inspect
+from dotenv import load_dotenv
 
 # Configuración de logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - \"%(levelname)s\" - %(message)s"
+    format="%(asctime)s - %(name)s - \"%(levelname)s\" - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger("migrador")
 
-# Crear una sesión local para las operaciones de migración
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Importar explícitamente el motor, base y modelos
+try:
+    from database import engine, SessionLocal, Base
+    from models_sql import (
+        AutoElectricoSQL, CargaSQL, EstacionSQL,
+        AutoEliminadoSQL, CargaEliminadaSQL, EstacionEliminadaSQL
+    )
+except ImportError as e:
+    logger.error(f"❌ Error al importar dependencias de DB/Modelos: {e}")
+    sys.exit(1)
 
-logger.info(f"Conectando a la base de datos para migración...")
 
-# Definir la metadata de la base de datos
-metadata = MetaData()
+# ------------------ FUNCIONES DE CONVERSIÓN (Correctas) ------------------
+
+def conversion_tipo_auto(fila: pd.Series) -> AutoElectricoSQL:
+    return AutoElectricoSQL(
+        id=int(fila["id"]),
+        marca=fila["marca"],
+        modelo=fila["modelo"],
+        anio=int(fila["anio"]),
+        capacidad_bateria_kwh=float(fila["capacidad_bateria_kwh"]),
+        autonomia_km=float(fila["autonomia_km"]),
+        disponible=str(fila["disponible"]).lower() == "true",
+        url_imagen=fila.get("url_imagen")
+    )
 
 
-# Dentro de migrate_csv_to_db.py, añadir la siguiente función:
+def conversion_tipo_carga(fila: pd.Series) -> CargaSQL:
+    return CargaSQL(
+        id=int(fila["id"]),
+        modelo_auto=fila["modelo_auto"],
+        tipo_autonomia=fila["tipo_autonomia"],
+        autonomia_km=float(fila["autonomia_km"]),
+        consumo_kwh_100km=float(fila["consumo_kwh_100km"]),
+        tiempo_carga_horas=float(fila["tiempo_carga_horas"]),
+        dificultad_carga=fila["dificultad_carga"],
+        requiere_instalacion_domestica=str(fila["requiere_instalacion_domestica"]).lower() == "true",
+        url_imagen=fila.get("url_imagen")
+    )
+
+
+def conversion_tipo_estacion(fila: pd.Series) -> EstacionSQL:
+    return EstacionSQL(
+        id=int(fila["id"]),
+        nombre=fila["nombre"],
+        ubicacion=fila["ubicacion"],
+        tipo_conector=fila["tipo_conector"],
+        potencia_kw=float(fila["potencia_kw"]),
+        num_conectores=int(fila["num_conectores"]),
+        acceso_publico=str(fila["acceso_publico"]).lower() == "true",
+        horario_apertura=fila["horario_apertura"],
+        coste_por_kwh=float(fila["coste_por_kwh"]),
+        operador=fila["operador"],
+        url_imagen=fila.get("url_imagen")
+    )
+
+
+# ------------------ FUNCIONES DE DB (Limpieza y Secuencia) ------------------
+
+def limpiar_tabla(db: Session, model_class, table_name: str):
+    """Limpia la tabla usando TRUNCATE (PostgreSQL) para resetear el estado y evitar errores de ID."""
+    try:
+        # TRUNCATE es rápido y en PostgreSQL (Render) reinicia la secuencia automáticamente.
+        # CASCADE se usa si hay dependencias de foreign keys.
+        db.execute(text(f"TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE;"))
+        db.commit()
+        logger.info(f"🗑️ Tabla '{table_name}' limpiada (TRUNCATE).")
+    except Exception as e:
+        logger.error(f"❌ Error al limpiar la tabla '{table_name}': {e}", exc_info=True)
+        db.rollback()
+
 
 def reset_sequence_ids(db: Session, model_class, table_name):
-    """Resetea el contador de secuencia de la tabla de PostgreSQL al max(id) + 1."""
+    """Función de respaldo para resetear la secuencia de ID si TRUNCATE falla o no se usa CASCADE."""
     try:
         max_id = db.query(func.max(model_class.id)).scalar()
         if max_id is not None:
-            # PostgreSQL necesita esta sentencia para resetear el contador de secuencia
-            # El nombre de la secuencia es típicamente <nombre_tabla>_<nombre_columna>_seq
             sequence_name = f"{table_name}_id_seq"
-            # Ojo: SQLAlchemy 2.0+ a veces maneja esto automáticamente, pero para forzar:
+            # setval(sequence_name, valor, is_called)
+            # is_called=True significa que el próximo valor será max_id + 1
             db.execute(text(f"SELECT setval('{sequence_name}', {max_id}, true);"))
             db.commit()
             logger.info(f"✅ Secuencia de ID para {table_name} reseteada a {max_id + 1}.")
     except Exception as e:
-        logger.warning(f"⚠️ No se pudo resetear la secuencia de ID para {table_name}: {e}")
+        logger.warning(
+            f"⚠️ No se pudo resetear la secuencia de ID para {table_name} (Esto es normal si TRUNCATE RESTART IDENTITY funcionó): {e}")
         db.rollback()
 
 
-# Al final de la función main() en migrate_csv_to_db.py:
-def main():
-    # ... (código existente para migrar CSV) ...
-
-    # ------------------ RESETEAR SECUENCIAS ------------------
-    db = SessionLocal()
-    try:
-        logger.info("Reseteando secuencias de ID en la base de datos...")
-        from models_sql import AutoElectricoSQL, CargaSQL, EstacionSQL
-
-        reset_sequence_ids(db, AutoElectricoSQL, "autos_electricos")
-        reset_sequence_ids(db, CargaSQL, "cargas")  # Asumiendo que tu tabla es 'cargas'
-        reset_sequence_ids(db, EstacionSQL, "estaciones_carga")
-
-        # Las tablas eliminadas no necesitan reset de secuencia ya que no se insertan nuevos registros en ellas.
-
-    finally:
-        db.close()
-
-    logger.info("✨ Migración de CSV completada.")
-
-
-if __name__ == "__main__":
-    main()
-
-# Función para convertir tipos de datos para AutoElectrico
-def conversion_tipo_auto(fila: dict) -> dict:
-    return {
-        "id": int(fila["id"]),
-        "marca": fila["marca"],
-        "modelo": fila["modelo"],
-        "anio": int(fila["anio"]),
-        "capacidad_bateria_kwh": float(fila["capacidad_bateria_kwh"]),
-        "autonomia_km": float(fila["autonomia_km"]),
-        "disponible": fila["disponible"].lower() == "true",
-        "url_imagen": fila.get("url_imagen")  # Usar .get para que no falle si la columna no existe
-    }
-
-
-# Función para convertir tipos de datos para Carga
-def conversion_tipo_carga(fila: dict) -> dict:
-    return {
-        "id": int(fila["id"]),
-        "modelo_auto": fila["modelo_auto"],
-        "tipo_autonomia": fila["tipo_autonomia"],
-        "autonomia_km": float(fila["autonomia_km"]),
-        "consumo_kwh_100km": float(fila["consumo_kwh_100km"]),
-        "tiempo_carga_horas": float(fila["tiempo_carga_horas"]),
-        "dificultad_carga": fila["dificultad_carga"],
-        "requiere_instalacion_domestica": fila["requiere_instalacion_domestica"].lower() == "true",
-        "url_imagen": fila.get("url_imagen")
-    }
-
-
-# Función para convertir tipos de datos para Estacion
-def conversion_tipo_estacion(fila: dict) -> dict:
-    return {
-        "id": int(fila["id"]),
-        "nombre": fila["nombre"],
-        "ubicacion": fila["ubicacion"],
-        "tipo_conector": fila["tipo_conector"],
-        "potencia_kw": float(fila["potencia_kw"]),
-        "num_conectores": int(fila["num_conectores"]),
-        "acceso_publico": fila["acceso_publico"].lower() == "true",
-        "horario_apertura": fila["horario_apertura"],
-        "coste_por_kwh": float(fila["coste_por_kwh"]),
-        "operador": fila["operador"],
-        "url_imagen": fila.get("url_imagen")
-    }
-
-
-def migrar_csv_a_db(filepath: str, sql_model: Base, conversion_func):
-    """
-    Migra datos desde un archivo CSV a una tabla de la base de datos.
-    :param filepath: La ruta al archivo CSV.
-    :param sql_model: El modelo SQLAlchemy (ej. AutoElectricoSQL) al que se migrarán los datos.
-    :param conversion_func: Una función que convierte cada fila del CSV (diccionario)
-                            al formato esperado por el modelo SQL.
-    """
-    if not os.path.exists(filepath):
-        logger.info(f"ℹ️ Archivo CSV no encontrado: {filepath}. Saltando migración para este archivo.")
-        return
-
-    logger.info(f"🔄 Iniciando migración de {filepath} a la tabla {sql_model.__tablename__}...")
-    try:
-        with open(filepath, mode='r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            datos = [conversion_func(fila) for fila in reader]
-
-            db = SessionLocal()
-            try:
-                inspector = inspect(engine)
-                table_name = sql_model.__tablename__
-
-                # Obtener los IDs existentes en la tabla para evitar duplicados
-                existing_ids = set()
-                if inspector.has_table(table_name):
-                    existing_ids = set(db.query(sql_model.id).all())
-
-                nuevos_registros = 0
-                registros_actualizados = 0
-
-                for dato in datos:
-                    instance_id = dato.get("id")
-                    if instance_id and (instance_id,) in existing_ids:  # Tuple comparison for set
-                        # Si el registro ya existe, actualiza
-                        db_instance = db.query(sql_model).filter(sql_model.id == instance_id).first()
-                        if db_instance:
-                            for key, value in dato.items():
-                                setattr(db_instance, key, value)
-                            registros_actualizados += 1
-                        else:
-                            logger.warning(
-                                f"Advertencia: El ID {instance_id} existe en el conjunto de IDs, pero no se encontró la instancia para actualizar. Esto no debería pasar.")
-                    else:
-                        # Si no existe, crea uno nuevo
-                        db_instance = sql_model(**dato)
-                        db.add(db_instance)
-                        nuevos_registros += 1
-
-                db.commit()
-                logger.info(
-                    f"✅ Migración de {filepath} completada. {nuevos_registros} nuevos registros, {registros_actualizados} registros actualizados.")
-
-            except IntegrityError as e:
-                db.rollback()
-                logger.error(
-                    f"❌ Error de integridad al migrar {filepath}. Posible duplicado de ID o dato inválido. Detalles: {e}",
-                    exc_info=True)
-                logger.error(
-                    f"Revise el CSV: {filepath} para datos duplicados en la columna 'id' o datos inconsistentes.")
-            except Exception as e:
-                db.rollback()  # Revertir si hay algún error
-                logger.error(f"❌ Error durante la migración de {filepath} a la base de datos: {e}", exc_info=True)
-            finally:
-                db.close()  # Asegúrate de cerrar la sesión
-
-    except Exception as e:
-        logger.error(f"❌ Error al leer el archivo CSV {filepath}: {e}")
-
-
-def main():
-    """Función principal para ejecutar la migración"""
-    # Asegurarse de que los directorios 'datos' y 'eliminados' existan
-    os.makedirs('datos', exist_ok=True)
-    os.makedirs('eliminados', exist_ok=True)
-
-    # Migrar datos de autos (principales y eliminados)
-    migrar_csv_a_db("datos/autos_electricos.csv", AutoElectricoSQL, conversion_tipo_auto)
-    migrar_csv_a_db("eliminados/autos_eliminados.csv", AutoEliminadoSQL, conversion_tipo_auto)
-
-    # Migrar datos de cargas (principales y eliminados)
-    migrar_csv_a_db("datos/dificultad_carga.csv", CargaSQL, conversion_tipo_carga)
-    # Nota: Asegúrate de que este CSV exista si lo usas
-    migrar_csv_a_db("eliminados/dificultad_carga_eliminados.csv", CargaEliminadaSQL, conversion_tipo_carga)
-
-    # Migrar datos de estaciones (principales y eliminados)
-    migrar_csv_a_db("datos/estaciones_carga.csv", EstacionSQL, conversion_tipo_estacion)
-    migrar_csv_a_db("eliminados/estaciones_eliminadas.csv", EstacionEliminadaSQL, conversion_tipo_estacion)
-
-
-if __name__ == "__main__":
-    logger.info("Iniciando script de migración CSV a DB...")
-    main()
-    logger.info("Migración CSV a DB completada.")
-
+# ------------------ FUNCIÓN DE MIGRACIÓN CON CHUNKING (Optimizado para Memoria) ------------------
 
 def migrar_csv_a_db(filepath: str, ModelSQL, conversion_func):
-    logger.info(f"Iniciando migración en chunks para {filepath}...")
+    """
+    Migra datos de un CSV a la base de datos en lotes (chunks) para ahorrar memoria.
+    Esta función asume que la tabla ya ha sido limpiada (TRUNCATE) previamente.
+    """
+    if not os.path.exists(filepath):
+        logger.warning(f"⚠️ Archivo no encontrado: {filepath}. Saltando.")
+        return
+
+    logger.info(f"🔄 Iniciando migración por CHUNKS para {filepath} a la tabla {ModelSQL.__tablename__}...")
 
     try:
-        # CLAVE: usa chunksize para procesar el archivo en pequeños bloques
+        # CLAVE: usar chunksize para procesar el archivo en pequeños bloques
         chunksize = 1000
+        total_inserted = 0
 
-        for i, chunk in enumerate(pd.read_csv(filepath, chunksize=chunksize, encoding='utf-8')):
+        # Leer el CSV en iterador de chunks
+        for i, chunk in enumerate(pd.read_csv(filepath, chunksize=chunksize, encoding='utf-8', sep=',')):
             db = SessionLocal()  # Abre una nueva sesión para cada lote
             try:
-                # 1. Convertir el chunk de Pandas a objetos de SQLAlchemy (ModelSQL)
-                data_to_insert = [conversion_func(row) for index, row in chunk.iterrows()]
+                # 1. Convertir el chunk de Pandas a objetos de SQLAlchemy
+                # Usar list comprehension es más eficiente que iterrows() para esta conversión.
+                data_to_insert = [ModelSQL(**conversion_func(row)) for index, row in chunk.iterrows()]
 
-                # 2. Inserción masiva del lote
+                # 2. Inserción masiva del lote (más rápido que db.add() uno por uno)
                 db.bulk_save_objects(data_to_insert)
                 db.commit()
+                total_inserted += len(data_to_insert)
 
             except Exception as e:
                 db.rollback()
-                logger.error(f"❌ Error en lote {i + 1} de {filepath}: {e}")
+                logger.error(f"❌ Error crítico en LOTE {i + 1} de {filepath}. Revisar tipos de datos: {e}",
+                             exc_info=True)
+                # Si el error es crítico, paramos la migración
+                raise
             finally:
                 db.close()  # Cierra la sesión
 
-    except FileNotFoundError:
-        logger.warning(f"⚠️ Archivo no encontrado: {filepath}")
+        logger.info(f"✅ Migración de {filepath} completa. Total de registros insertados: {total_inserted}.")
+
     except Exception as e:
-        logger.error(f"❌ Error al leer o procesar {filepath}: {e}")
+        logger.error(f"❌ Error fatal al leer o procesar {filepath}: {e}", exc_info=True)
+
+
+# ------------------ FUNCIÓN PRINCIPAL (Lógica de Despliegue) ------------------
+
+def main():
+    """Función principal para ejecutar la migración: Limpiar, Migrar, Resetear."""
+    # Asegurarse de que los directorios existan
+    os.makedirs('datos', exist_ok=True)
+    os.makedirs('eliminados', exist_ok=True)
+
+    db = SessionLocal()
+    try:
+        # 1. LIMPIEZA CRÍTICA: TRUNCATE las tablas principales para una migración limpia
+        logger.info("--- INICIANDO LIMPIEZA DE TABLAS PRINCIPALES (TRUNCATE) ---")
+        limpiar_tabla(db, AutoElectricoSQL, "autos_electricos")
+        limpiar_tabla(db, CargaSQL, "cargas")
+        limpiar_tabla(db, EstacionSQL, "estaciones_carga")
+        logger.info("--- LIMPIEZA COMPLETADA ---")
+
+    except Exception as e:
+        logger.error(f"❌ Error al preparar la base de datos para migración: {e}", exc_info=True)
+        sys.exit(1)  # Detener si la limpieza falla
+    finally:
+        db.close()
+
+    # 2. MIGRACIÓN DE DATOS (Las tablas eliminadas no se limpian, solo se insertan si es un primer deploy)
+    try:
+        logger.info("--- INICIANDO MIGRACIÓN DE DATOS PRINCIPALES ---")
+        migrar_csv_a_db("datos/autos_electricos.csv", AutoElectricoSQL, conversion_tipo_auto)
+        migrar_csv_a_db("datos/dificultad_carga.csv", CargaSQL, conversion_tipo_carga)
+        migrar_csv_a_db("datos/estaciones_carga.csv", EstacionSQL, conversion_tipo_estacion)
+
+        # Migrar tablas de eliminación (simplemente se insertan, no se hace TRUNCATE/limpieza)
+        logger.info("--- INICIANDO MIGRACIÓN DE DATOS ELIMINADOS (Historial) ---")
+        migrar_csv_a_db("eliminados/autos_eliminados.csv", AutoEliminadoSQL, conversion_tipo_auto)
+        migrar_csv_a_db("eliminados/dificultad_carga_eliminados.csv", CargaEliminadaSQL, conversion_tipo_carga)
+        migrar_csv_a_db("eliminados/estaciones_eliminadas.csv", EstacionEliminadaSQL, conversion_tipo_estacion)
+
+    except Exception as e:
+        logger.error(f"❌ FALLA CRÍTICA EN MIGRACIÓN. El servicio probablemente morirá con 500: {e}", exc_info=True)
+        # No salimos aquí porque la aplicación puede intentar arrancar incluso con datos parciales
+
+    logger.info("✨ Migración de CSV a DB completada.")
+
+
+if __name__ == "__main__":
+    main()
