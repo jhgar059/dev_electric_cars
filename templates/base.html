@@ -317,7 +317,8 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                {% if not is_home_page %} <li class="nav-item">
+                {% if not is_home_page %}
+                <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('cars_page') }}"><i class="fas fa-car me-2"></i>Autos</a>
                 </li>
                 <li class="nav-item">
@@ -352,7 +353,8 @@
                         <li><a class="dropdown-item" href="{{ url_for('developer_info_page') }}">Acerca del Desarrollador</a></li>
                     </ul>
                 </li>
-                {% endif %} </ul>
+                {% endif %}
+            </ul>
         </div>
     </div>
 </nav>

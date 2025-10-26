@@ -419,15 +419,10 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def index(request: Request):
-    """Muestra la página de inicio."""
-
-
     return templates.TemplateResponse(
         "index.html",
         {"request": request, "is_home_page": True}
     )
-
-
 @app.get("/register", response_class=HTMLResponse, summary="Página de Registro")
 async def register_form(request: Request):
     """Muestra el formulario de registro de usuario."""
