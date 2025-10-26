@@ -27,6 +27,13 @@ import crud_usuarios as user_crud # Nuevas funciones de auth
 from auth_utils import get_password_hash, verify_password, get_current_user # Utilidades de auth (asumiendo que existe)
 
 
+@app.get("/", summary="Página de inicio (HTML)")
+async def index_page(request: Request): # Quita el 'db: Session = Depends(get_db)'
+    # LÍNEA DE PRUEBA: DEVUELVE SOLO TEXTO PLANO
+    return HTMLResponse("<h1>Servidor OK! Debugging...</h1>")
+    # return templates.TemplateResponse("index.html", {"request": request, "autos_count": 0}) # COMENTA ESTA LÍNEA
+
+
 # ✅ CORRECTO - Lee la variable de entorno
 DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
