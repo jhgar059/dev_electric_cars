@@ -26,14 +26,22 @@ import crud  # Importar todas las funciones CRUD
 import crud_usuarios as user_crud # Nuevas funciones de auth
 from auth_utils import get_password_hash, verify_password, get_current_user # Utilidades de auth (asumiendo que existe)
 
+# ✅ LÓGICA DE FASTAPI (DEBE IR AL PRINCIPIO)
+# Inicialización de FastAPI
+app = FastAPI(
+    title="Electric Cars Database API",
+    description="API RESTful para la gestión de datos de autos y estaciones de carga eléctricas.",
+    version="1.0.0",
+)
 
-@app.get("/", summary="Página de inicio (HTML)")
-async def index_page(request: Request): # Quita el 'db: Session = Depends(get_db)'
-    # LÍNEA DE PRUEBA: DEVUELVE SOLO TEXTO PLANO
-    return HTMLResponse("<h1>Servidor OK! Debugging...</h1>")
-    # return templates.TemplateResponse("index.html", {"request": request, "autos_count": 0}) # COMENTA ESTA LÍNEA
+# Configuración de Jinja2Templates para servir archivos HTML
+templates = Jinja2Templates(directory="templates")
 
+# Servir archivos estáticos (imágenes, CSS, JS)
+# ¡IMPORTANTE! Esto debe ir después de crear la instancia 'app'
+app.mount("/static", (Path(__file__).parent / "static").resolve(), name="static")
 
+# Configuración y Creación de Tablas
 # ✅ CORRECTO - Lee la variable de entorno
 DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
@@ -49,16 +57,6 @@ logger = logging.getLogger("main")
 
 # Crear las tablas en la base de datos (redundante si db_init.py ya se ejecuta, pero no hace daño)
 Base.metadata.create_all(bind=engine)
-
-# Inicialización de FastAPI (usando la configuración más completa)
-app = FastAPI(
-    title="Electric Cars Database API",
-    description="API RESTful para la gestión de datos de autos y estaciones de carga eléctricas.",
-    version="1.0.0",
-)
-
-# Configuración de Jinja2Templates para servir archivos HTML
-templates = Jinja2Templates(directory="templates")
 
 
 # --------------------- MIDDLEWARE DE AUTENTICACIÓN ---------------------
@@ -540,10 +538,6 @@ async def upload_image(file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"Error al subir imagen: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error al subir la imagen: {e}")
-
-
-# Servir archivos estáticos (imágenes, CSS, JS)
-app.mount("/static", (Path(__file__).parent / "static").resolve(), name="static")
 
 
 # --------------------- ENDPOINTS DE ESTADÍSTICAS ---------------------
