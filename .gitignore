@@ -35,5 +35,5 @@ ENV/
 # Logs
 *.log
 
-# Archivos de base de datos local (SQLite, si usas)
+# Archivos de base de datos local (SQLite, si usa)
 *.db

@@ -243,7 +243,7 @@ if __name__ == "__main__":
     finally:
         db.close()
 
-    logger.info("Migrando datos CSV existentes...")
+    logger.info("Migrando datos CSV existente...")
     try:
         import migrate_csv_to_db
 
