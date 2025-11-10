@@ -22,49 +22,47 @@ class AutoActualizado(BaseModel):
     anio: Optional[int] = Field(None, gt=2010, lt=2026)
     capacidad_bateria_kwh: Optional[float] = Field(None, gt=0)
     autonomia_km: Optional[float] = Field(None, gt=0)
-    disponible: Optional[bool] = Field(None)
+    disponible: Optional[bool] = None
     url_imagen: Optional[str] = Field(None, max_length=255)
 
-
-# ------------------ Modelos para Carga ------------------
+# ------------------ Modelos para Cargas ------------------
 
 class CargaBase(BaseModel):
     modelo_auto: str = Field(..., min_length=1, max_length=50)
-    tipo_autonomia: str = Field(..., pattern="^(EPA|WLTP|NEDC|Mixta)$", description="Tipo de autonomía (EPA, WLTP, NEDC, Mixta)")
+    tipo_autonomia: str = Field(..., max_length=20) # 'WLTP' o 'EPA'
     autonomia_km: float = Field(..., gt=0)
     consumo_kwh_100km: float = Field(..., gt=0)
     tiempo_carga_horas: float = Field(..., gt=0)
-    dificultad_carga: str = Field(..., pattern="^(baja|media|alta)$", description="Nivel de dificultad de carga (baja, media, alta)")
+    dificultad_carga: str = Field(..., max_length=10) # 'baja', 'media', 'alta'
     requiere_instalacion_domestica: bool = Field(...)
-    url_imagen: Optional[str] = Field(None, max_length=255) # Nuevo campo
+    url_imagen: Optional[str] = Field(None, max_length=255)
 
 class CargaConID(CargaBase):
     id: int
 
 class CargaActualizada(BaseModel):
     modelo_auto: Optional[str] = Field(None, min_length=1, max_length=50)
-    tipo_autonomia: Optional[str] = Field(None, pattern="^(EPA|WLTP|NEDC|Mixta)$")
+    tipo_autonomia: Optional[str] = Field(None, max_length=20)
     autonomia_km: Optional[float] = Field(None, gt=0)
     consumo_kwh_100km: Optional[float] = Field(None, gt=0)
     tiempo_carga_horas: Optional[float] = Field(None, gt=0)
-    dificultad_carga: Optional[str] = Field(None, pattern="^(baja|media|alta)$")
-    requiere_instalacion_domestica: Optional[bool] = Field(None)
+    dificultad_carga: Optional[str] = Field(None, max_length=10)
+    requiere_instalacion_domestica: Optional[bool] = None
     url_imagen: Optional[str] = Field(None, max_length=255)
-
 
 # ------------------ Modelos para Estaciones de Carga ------------------
 
 class EstacionBase(BaseModel):
     nombre: str = Field(..., min_length=2, max_length=50)
     ubicacion: str = Field(..., min_length=5, max_length=100)
-    tipo_conector: str = Field(..., pattern="^(CCS|CHAdeMO|Tipo 2|Schuko|Tesla)$", description="Tipo de conector (CCS, CHAdeMO, Tipo 2, Schuko, Tesla)")
-    potencia_kw: float = Field(..., ge=3.7, le=350) # Rango típico de potencia de carga
-    num_conectores: int = Field(..., ge=1, le=20)
+    tipo_conector: str = Field(..., max_length=10) # Tipo de conector (ej: 'CCS', 'Type 2', 'CHAdeMO')
+    potencia_kw: float = Field(..., gt=0)
+    num_conectores: int = Field(..., gt=0)
     acceso_publico: bool = Field(...)
-    horario_apertura: str = Field(..., min_length=3, max_length=50)
-    coste_por_kwh: float = Field(..., ge=0, le=1) # Costo razonable por kWh
-    operador: str = Field(..., min_length=2, max_length=50)
-    url_imagen: Optional[str] = Field(None, max_length=255) # Nuevo campo
+    horario_apertura: str = Field(..., max_length=50)
+    coste_por_kwh: float = Field(..., ge=0)
+    operador: str = Field(..., max_length=50)
+    url_imagen: Optional[str] = Field(None, max_length=255)
 
 class EstacionConID(EstacionBase):
     id: int
@@ -72,33 +70,29 @@ class EstacionConID(EstacionBase):
 class EstacionActualizada(BaseModel):
     nombre: Optional[str] = Field(None, min_length=2, max_length=50)
     ubicacion: Optional[str] = Field(None, min_length=5, max_length=100)
-    tipo_conector: Optional[str] = Field(None, pattern="^(CCS|CHAdeMO|Tipo 2|Schuko|Tesla)$")
-    potencia_kw: Optional[float] = Field(None, ge=3.7, le=350)
-    num_conectores: Optional[int] = Field(None, ge=1, le=20)
-    acceso_publico: Optional[bool] = Field(None)
-    horario_apertura: Optional[str] = Field(None, min_length=3, max_length=50)
-    coste_por_kwh: Optional[float] = Field(None, ge=0, le=1)
-    operador: Optional[str] = Field(None, min_length=2, max_length=50)
+    tipo_conector: Optional[str] = Field(None, max_length=10)
+    potencia_kw: Optional[float] = Field(None, gt=0)
+    num_conectores: Optional[int] = Field(None, gt=0)
+    acceso_publico: Optional[bool] = None
+    horario_apertura: Optional[str] = Field(None, max_length=50)
+    coste_por_kwh: Optional[float] = Field(None, ge=0)
+    operador: Optional[str] = Field(None, max_length=50)
     url_imagen: Optional[str] = Field(None, max_length=255)
 
-class UsuarioBase(BaseModel):
-    correo: EmailStr
-    nombre: str = Field(..., min_length=2, max_length=50)
-    edad: Optional[int] = Field(None, gt=0, le=120)
-    cedula: str = Field(..., min_length=5, max_length=20)
-    celular: Optional[str] = Field(None, min_length=7, max_length=20)
+# ------------------ Modelos para Autenticación de Usuarios ------------------
 
-class UsuarioRegistro(UsuarioBase):
+class UsuarioRegistro(BaseModel):
+    # Campos base de usuario
+    nombre: str = Field(..., min_length=2, max_length=50)
+    edad: int = Field(..., gt=17, lt=100) # Mayor de 18
+    correo: EmailStr
+    cedula: str = Field(..., min_length=5, max_length=15)
+    celular: str = Field(..., min_length=7, max_length=15)
+
+    # Contraseña con validación de longitud mínima (8)
+    # Se ha eliminado el @validator para no interferir con la lógica de la API/UI
     password: str = Field(..., min_length=8, description="Debe contener al menos 8 caracteres y un número.")
 
-    # Pydantic valida que la contraseña cumpla los requisitos
-    @validator('password')
-    def validate_password(cls, v):
-        if len(v) < 8:
-            raise ValueError('La contraseña debe tener al menos 8 caracteres.')
-        if not any(char.isdigit() for char in v):
-            raise ValueError('La contraseña debe contener al menos un número.')
-        return v
 
 class UsuarioLogin(BaseModel):
     cedula_o_correo: str
