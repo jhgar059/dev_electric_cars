@@ -1,4 +1,9 @@
 from passlib.context import CryptContext
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
+import crud_usuarios as crud
+from database import get_db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -6,15 +11,9 @@ def verify_password(plain_password, hashed_password):
     """Verifica si la contraseña plana coincide con el hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
-def get_password_hash(password):
-    """Genera el hash de una contraseña."""
+def get_password_hash(password: str) -> str:
+    password_to_hash = password.encode('utf-8')[:72].decode('utf-8', 'ignore')
     return pwd_context.hash(password)
-
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-import crud_usuarios as crud
-from database import get_db
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
 
