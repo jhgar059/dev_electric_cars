@@ -88,13 +88,11 @@
      */
     function validatePassword(input) {
         const value = input.value;
-        const invalidFeedback = input.parentNode.querySelector('.invalid-feedback');
-
         const isValidLength = value.length >= 8;
-        const hasNumber = /[0-9]/.test(value); // Verifica si contiene al menos un número
+        //const hasNumber = /[0-9]/.test(value); // <--- ESTA ES LA RESTRICCIÓN DE NÚMERO
+        const invalidFeedback = input.parentElement.querySelector('.invalid-feedback');
 
-        // Asume que es válido por defecto si el campo está vacío (manejo de 'required' de HTML)
-        if (value.length === 0) {
+            if (value.length === 0) {
             input.classList.remove('is-valid', 'is-invalid');
             invalidFeedback.innerText = '';
             return;
