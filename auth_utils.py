@@ -25,7 +25,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciales inválidas o token expirado",
+            detail="Credenciales inválidas o/y token expirado",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user

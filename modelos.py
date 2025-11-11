@@ -110,7 +110,7 @@ class UsuarioRegistro(BaseModel):
     @validator('password')
     def validate_password_has_number(cls, v):
         if not any(char.isdigit() for char in v):
-            raise ValueError('La contraseña debe contener al menos un número.')
+            raise ValueError('La contraseña debe contener al menos un número')
         return v
 
 
