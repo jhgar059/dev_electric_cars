@@ -91,7 +91,7 @@ class UsuarioRegistro(BaseModel):
 
     # Contraseña con validación de longitud mínima (8)
     # Se ha eliminado el @validator para no interferir con la lógica de la API/UI
-    password: str = Field(..., min_length=8, description="Debe contener al menos 8 caracteres y un número.")
+    password: str = Field(..., min_length=8, description="Debe contener al menos 8 caracteres y un número")
 
 
 class UsuarioLogin(BaseModel):
