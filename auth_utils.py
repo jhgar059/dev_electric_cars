@@ -7,7 +7,7 @@ from database import get_db
 
 
 # Contexto de passlib: esquema bcrypt y autoconservación de hashes antiguos
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto.")
 
 
 def verify_password(plain_password, hashed_password):

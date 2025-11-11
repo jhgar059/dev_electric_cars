@@ -124,9 +124,9 @@ class CambioPassword(BaseModel):
     @classmethod
     def validate_new_password_content(cls, v: str):
         if len(v) < 8:
-            raise ValueError('La nueva contraseña debe tener al menos 8 caracteres.')
+            raise ValueError('La nueva contraseña debe tener al menos 8 caracteres')
         if not any(char.isdigit() for char in v):
-            raise ValueError('La nueva contraseña debe contener al menos un número.')
+            raise ValueError('La nueva contraseña debe contener al menos un número')
         return v
 
     # Usar @field_validator para validación cruzada (passwords_match)
