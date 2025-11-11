@@ -89,7 +89,7 @@
     function validatePassword(input) {
         const value = input.value;
         const isValidLength = value.length >= 8;
-        //const hasNumber = /[0-9]/.test(value); // <--- ESTA ES LA RESTRICCIÓN DE NÚMERO
+        const hasNumber = /[0-9]/.test(value); // <--- ESTA ES LA RESTRICCIÓN DE NÚMERO
         const invalidFeedback = input.parentElement.querySelector('.invalid-feedback');
 
             if (value.length === 0) {

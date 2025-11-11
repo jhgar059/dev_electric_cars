@@ -90,8 +90,17 @@ class UsuarioRegistro(BaseModel):
     celular: str = Field(..., min_length=7, max_length=15)
 
     # Contraseña con validación de longitud mínima (8)
-    # Se ha eliminado el @validator para no interferir con la lógica de la API/UI
     password: str = Field(..., min_length=8, description="Debe contener al menos 8 caracteres y un número.")
+
+    # 🚨 MEJORA: Añadir el validador para asegurar que contiene un número en el lado del servidor
+    @validator('password')
+    def validate_password_complexity(cls, v):
+        if len(v) < 8:
+            # Esto será capturado por Field(min_length=8) pero lo dejamos para mensajes claros
+            raise ValueError('La contraseña debe tener al menos 8 caracteres.')
+        if not any(char.isdigit() for char in v):
+            raise ValueError('La contraseña debe contener al menos un número.')
+        return v
 
 
 class UsuarioLogin(BaseModel):
