@@ -87,14 +87,12 @@ class UsuarioRegistro(BaseModel):
     correo: EmailStr
     cedula: str = Field(..., min_length=5, max_length=15)
     celular: str = Field(..., min_length=7, max_length=15)
-    password: str = Field(..., min_length=8, description="Debe contener al menos 8 caracteres y un número")
     password: str = Field(
         ...,
         min_length=8,
         max_length=72,
-        description="Debe contener entre 8 y 72 caracteres y un número"
+        description="debe contener entre 8 y 72 caracteres y un número."
     )
-
 
 class UsuarioLogin(BaseModel):
     cedula_o_correo: str
@@ -109,9 +107,9 @@ class CambioPassword(BaseModel):
     @validator('password_nueva', 'password_nueva_confirmacion')
     def validate_new_password(cls, v):
         if len(v) < 8:
-            raise ValueError('La nueva contraseña debe tener al menos 8 caracteres.')
+            raise ValueError('La nueva contraseña debe tener al menos 8 caracteres')
         if not any(char.isdigit() for char in v):
-            raise ValueError('La nueva contraseña debe contener al menos un número.')
+            raise ValueError('La nueva contraseña debe contener al menos un número')
         return v
 
     @validator('password_nueva_confirmacion')
