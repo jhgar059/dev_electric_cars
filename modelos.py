@@ -82,16 +82,18 @@ class EstacionActualizada(BaseModel):
 # ------------------ Modelos para Autenticación de Usuarios ------------------
 
 class UsuarioRegistro(BaseModel):
-    # Campos base de usuario
     nombre: str = Field(..., min_length=2, max_length=50)
     edad: int = Field(..., gt=17, lt=100) # Mayor de 18
     correo: EmailStr
     cedula: str = Field(..., min_length=5, max_length=15)
     celular: str = Field(..., min_length=7, max_length=15)
-
-    # Contraseña con validación de longitud mínima (8)
-    # Se ha eliminado el @validator para no interferir con la lógica de la API/UI
-    password: str = Field(..., min_length=8, description="Debe contener al menos 8 caracteres y un número.")
+    password: str = Field(..., min_length=8, description="Debe contener al menos 8 caracteres y un número")
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=72,
+        description="Debe contener entre 8 y 72 caracteres y un número"
+    )
 
 
 class UsuarioLogin(BaseModel):
