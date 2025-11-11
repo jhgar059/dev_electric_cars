@@ -13,7 +13,7 @@ class AutoElectrico(BaseModel):
     url_imagen: Optional[str] = Field(None, max_length=255) # Nuevo campo para la URL de la imagen
 
 class AutoElectricoConID(AutoElectrico):
-    id: int # El ID será generado por la base de datos
+    id: int
 
 class AutoActualizado(BaseModel):
     # Campos opcionales para actualizaciones parciales (PATCH)
