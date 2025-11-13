@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr, field_validator  # Importa field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, ValidationInfo
 from typing import Optional
 
 
@@ -129,11 +129,9 @@ class CambioPassword(BaseModel):
             raise ValueError('La nueva contraseña debe contener al menos un número')
         return v
 
-    # Usar @field_validator para validación cruzada (passwords_match)
     @field_validator('password_nueva_confirmacion')
     @classmethod
-    def passwords_match(cls, v: str, info: field_validator.ValidationInfo):
-        # Asegurarse de que el campo 'password_nueva' ya haya sido validado
+    def passwords_match(cls, v: str, info: ValidationInfo):  # <-- CORREGIDO
         if 'password_nueva' in info.data and v != info.data['password_nueva']:
             raise ValueError('Las contraseñas no coinciden')
         return v
