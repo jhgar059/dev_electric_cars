@@ -4,10 +4,14 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 import crud_usuarios as crud
 from database import get_db
+from passlib.context import CryptContext
 
 
-# Contexto de passlib: esquema bcrypt y autoconservación de hashes antiguos
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto.")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str):
+    truncated_password = password[:72]
+    return pwd_context.hash(truncated_password)
 
 
 def verify_password(plain_password, hashed_password):

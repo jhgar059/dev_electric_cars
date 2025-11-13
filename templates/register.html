@@ -53,13 +53,13 @@
                     <div class="mb-4">
                         <label for="password" class="form-label"><i class="fas fa-lock me-2"></i>Contraseña</label>
                         <div class="input-group">
-                            <input type="password" class="form-control" id="password" name="password" required minlength="8" oninput="validatePassword(this)">
+                            <input type="password" class="form-control" id="password" name="password" required minlength="8" maxlength="72" oninput="validatePassword(this)">
                             <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                 <i class="fas fa-eye-slash"></i>
                             </button>
                             <div class="invalid-feedback"></div>
                         </div>
-                        <small class="form-text text-muted">Mínimo 8 caracteres y debe contener al menos un número.</small>
+                        <small class="form-text text-muted">Mínimo 8 y Máximo 72 caracteres. Debe contener al menos un número.</small>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 btn-lg">
@@ -81,18 +81,19 @@
 <script>
     const passwordInput = document.getElementById('password');
     const toggleButton = document.getElementById('togglePassword');
+    const MAX_LENGTH = 72; // Definir la longitud máxima para uso en el JS
 
     /**
-     * Valida la contraseña para asegurar la longitud mínima y la presencia de un número.
+     * Valida la contraseña para asegurar la longitud mínima (8), máxima (72) y la presencia de un número.
      * @param {HTMLInputElement} input - El elemento input de la contraseña.
      */
     function validatePassword(input) {
         const value = input.value;
-        const isValidLength = value.length >= 8;
-        const hasNumber = /[0-9]/.test(value); // <--- ESTA ES LA RESTRICCIÓN DE NÚMERO
+        const isValidLength = value.length >= 8 && value.length <= MAX_LENGTH; // Incluir la validación de MAX_LENGTH
+        const hasNumber = /[0-9]/.test(value);
         const invalidFeedback = input.parentElement.querySelector('.invalid-feedback');
 
-            if (value.length === 0) {
+        if (value.length === 0) {
             input.classList.remove('is-valid', 'is-invalid');
             invalidFeedback.innerText = '';
             return;
@@ -107,8 +108,10 @@
             input.classList.add('is-invalid');
 
             // Lógica para el mensaje de error más específico
-            if (!isValidLength) {
+            if (value.length < 8) {
                 invalidFeedback.innerText = "La contraseña debe tener al menos 8 caracteres.";
+            } else if (value.length > MAX_LENGTH) {
+                invalidFeedback.innerText = `La contraseña no puede exceder los ${MAX_LENGTH} caracteres.`;
             } else if (!hasNumber) {
                 invalidFeedback.innerText = "La contraseña debe contener al menos un número.";
             } else {
@@ -118,7 +121,8 @@
     }
 
     toggleButton.addEventListener('click', function (e) {
-        const type = passwordInput.getAttribute('type') === 'password.' ? 'text' : 'password';
+        // CORRECCIÓN 3: Se quitó el punto extra '.' de 'password.'
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
         passwordInput.setAttribute('type', type);
 
         // Cambiar el icono
@@ -132,11 +136,12 @@
         validatePassword(passwordInput);
 
         // Chequear la validación nativa de HTML5 y nuestra validación JS
+        // Se asegura que tanto la validación nativa como la validación JS de contraseña sean exitosas
         if (!this.checkValidity() || passwordInput.classList.contains('is-invalid')) {
             event.preventDefault();
             event.stopPropagation();
         }
-        this.classList.add('wasvalidated');
+        this.classList.add('was-validated');
     }, false);
 
     // Asegurar que la contraseña se valida al cargar si hay datos
