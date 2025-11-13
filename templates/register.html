@@ -53,12 +53,17 @@
                     <div class="mb-3">
                         <label for="password" class="form-label"><i class="fas fa-lock me-2"></i>Contraseña</label>
                         <div class="input-group">
-                            <input type="password" class="form-control" id="password" name="password" required minlength="8" maxlength="72"  pattern="(?=.*\d).{8,}" title="Debe contener al menos un número y 8 caracteres.">
+                            <input type="password" class="form-control" id="password" name="password"
+                                   required minlength="8"
+                                   maxlength="72"  pattern="(?=.*\d).{8,72}" title="Debe contener entre 8 y 72 caracteres, y al menos un número."
+                                   oninput="validatePassword(this)"
+                                   value="{{ form_data.get('password', '') if form_data else '' }}">
                             <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                  <i class="fas fa-eye-slash"></i>
+                                <i class="fas fa-eye-slash"></i>
                             </button>
-                        <div class="invalid-feedback">La contraseña debe tener entre 8 y 72 caracteres, y contener al menos un número.</div>
+                            <div class="invalid-feedback">La contraseña es obligatoria.</div>
                         </div>
+                        <small class="form-text text-muted">Mínimo 8 caracteres, **Máximo 72 caracteres**, y debe contener al menos un número.</small>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 btn-lg">
