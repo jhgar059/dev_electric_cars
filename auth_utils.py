@@ -11,9 +11,9 @@ def verify_password(plain_password, hashed_password):
     """Verifica si la contraseña plana coincide con el hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
-def get_password_hash(password: str) -> str:
-    password_to_hash = password.encode('utf-8')[:72].decode('utf-8', 'ignore')
-    return pwd_context.hash(password)
+def get_password_hash(password):
+    truncated_password = password[:72]
+    return pwd_context.hash(truncated_password)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
 

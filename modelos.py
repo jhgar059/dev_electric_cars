@@ -96,9 +96,7 @@ class UsuarioRegistro(BaseModel):
     correo: EmailStr
     cedula: str = Field(..., min_length=5, max_length=15)
     celular: str = Field(..., min_length=7, max_length=15)
-
-    # CORRECTO: Campo con límite de 72 bytes para prevenir el error de bcrypt
-    password: str = Field(
+password: str = Field(
         ...,
         min_length=8,
         max_length=72,  # CLAVE: Límite de 72 bytes
