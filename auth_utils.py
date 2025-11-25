@@ -1,6 +1,6 @@
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer # ⬅️ CLASE IMPORTADA
 from sqlalchemy.orm import Session
 import crud_usuarios as crud
 from database import get_db
@@ -8,9 +8,12 @@ import logging
 
 logger = logging.getLogger("auth_utils")
 
+# 🟢 CORRECCIÓN CRÍTICA: Definir la variable oauth2_scheme
+# El tokenUrl debe apuntar al endpoint de login (como se ve en login.html)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
+
 # Configurar el contexto de contraseñas con bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
@@ -35,24 +38,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_password_hash(password: str) -> str:
-    """
-    Genera un hash bcrypt de la contraseña.
-    Truncamos la contraseña a 72 caracteres para evitar el límite de 72 bytes de bcrypt.
 
-    Args:
-        password: Contraseña en texto plano
-
-    Returns:
-        str: Hash de la contraseña
-    """
-    # ✅ CORRECCIÓN CRÍTICA: Truncar antes de hashear
     truncated_password = password[:72]
 
-    # El log es opcional, pero útil para depuración
     logger.debug(f"Hashing password (truncated length: {len(truncated_password)})")
-
-    return pwd_context.hash(truncated_password)  # ✅ AHORA FUNCIONA
-
+    truncated_password = password[:72]
+    return pwd_context.hash(truncated_password)
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """
