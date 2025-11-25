@@ -1,8 +1,7 @@
-# crud.py
-from sqlalchemy import Table, Column, Integer, String, Float, Boolean, MetaData, func # Importa func
-from sqlalchemy.ext.declarative import declarative_base
+# crud.py - CORREGIDO PARA SQLALCHEMY 2.0
+from sqlalchemy import func
 from sqlalchemy.orm import Session
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 import models_sql as models
 from modelos import AutoElectrico, CargaBase, EstacionBase, CargaActualizada, EstacionActualizada
 
@@ -18,7 +17,6 @@ def get_auto_by_modelo(db: Session, modelo: str):
     return db.query(models.AutoElectricoSQL).filter(models.AutoElectricoSQL.modelo.ilike(f"%{modelo}%")).all()
 
 def create_auto(db: Session, auto: AutoElectrico):
-    # Opcional: Verificar si ya existe un auto con el mismo modelo y año para evitar duplicados
     existing_auto = db.query(models.AutoElectricoSQL).filter(
         models.AutoElectricoSQL.modelo == auto.modelo,
         models.AutoElectricoSQL.anio == auto.anio
@@ -43,11 +41,20 @@ def update_auto(db: Session, auto_id: int, auto: AutoElectrico):
     return None
 
 def delete_auto(db: Session, auto_id: int):
+    """Elimina un auto sin mover al historial"""
     db_auto = db.query(models.AutoElectricoSQL).filter(models.AutoElectricoSQL.id == auto_id).first()
     if db_auto:
-        # Mover a la tabla de eliminados
+        db.delete(db_auto)
+        db.commit()
+        return True
+    return False
+
+def delete_auto_to_history(db: Session, auto_id: int):
+    """Elimina un auto y lo mueve al historial"""
+    db_auto = db.query(models.AutoElectricoSQL).filter(models.AutoElectricoSQL.id == auto_id).first()
+    if db_auto:
         db_eliminado = models.AutoEliminadoSQL(
-            id=db_auto.id, # Mantener el ID original si es deseado
+            id=db_auto.id,
             marca=db_auto.marca,
             modelo=db_auto.modelo,
             anio=db_auto.anio,
@@ -59,8 +66,8 @@ def delete_auto(db: Session, auto_id: int):
         db.add(db_eliminado)
         db.delete(db_auto)
         db.commit()
-        return db_auto
-    return None
+        return True
+    return False
 
 # --------------------- OPERACIONES CARGAS ---------------------
 
@@ -91,6 +98,16 @@ def update_carga(db: Session, carga_id: int, carga: CargaActualizada):
     return None
 
 def delete_carga(db: Session, carga_id: int):
+    """Elimina una carga sin mover al historial"""
+    db_carga = db.query(models.CargaSQL).filter(models.CargaSQL.id == carga_id).first()
+    if db_carga:
+        db.delete(db_carga)
+        db.commit()
+        return True
+    return False
+
+def delete_carga_to_history(db: Session, carga_id: int):
+    """Elimina una carga y la mueve al historial"""
     db_carga = db.query(models.CargaSQL).filter(models.CargaSQL.id == carga_id).first()
     if db_carga:
         db_eliminado = models.CargaEliminadaSQL(
@@ -107,8 +124,8 @@ def delete_carga(db: Session, carga_id: int):
         db.add(db_eliminado)
         db.delete(db_carga)
         db.commit()
-        return db_carga
-    return None
+        return True
+    return False
 
 # --------------------- OPERACIONES ESTACIONES ---------------------
 
@@ -139,6 +156,16 @@ def update_estacion(db: Session, estacion_id: int, estacion: EstacionActualizada
     return None
 
 def delete_estacion(db: Session, estacion_id: int):
+    """Elimina una estación sin mover al historial"""
+    db_estacion = db.query(models.EstacionSQL).filter(models.EstacionSQL.id == estacion_id).first()
+    if db_estacion:
+        db.delete(db_estacion)
+        db.commit()
+        return True
+    return False
+
+def delete_estacion_to_history(db: Session, estacion_id: int):
+    """Elimina una estación y la mueve al historial"""
     db_estacion = db.query(models.EstacionSQL).filter(models.EstacionSQL.id == estacion_id).first()
     if db_estacion:
         db_eliminado = models.EstacionEliminadaSQL(
@@ -157,8 +184,8 @@ def delete_estacion(db: Session, estacion_id: int):
         db.add(db_eliminado)
         db.delete(db_estacion)
         db.commit()
-        return db_estacion
-    return None
+        return True
+    return False
 
 # --------------------- OPERACIONES PARA OBTENER ELEMENTOS ELIMINADOS ---------------------
 
@@ -169,7 +196,6 @@ def get_auto_eliminado(db: Session, auto_id: int):
     return db.query(models.AutoEliminadoSQL).filter(models.AutoEliminadoSQL.id == auto_id).first()
 
 def get_cargas_eliminadas(db: Session, skip: int = 0, limit: int = 100):
-    # Asegúrate de que este query sea correcto para tu modelo CargaEliminadaSQL
     return db.query(models.CargaEliminadaSQL).offset(skip).limit(limit).all()
 
 def get_carga_eliminada(db: Session, carga_id: int):
@@ -181,12 +207,26 @@ def get_estaciones_eliminadas(db: Session, skip: int = 0, limit: int = 100):
 def get_estacion_eliminada(db: Session, estacion_id: int):
     return db.query(models.EstacionEliminadaSQL).filter(models.EstacionEliminadaSQL.id == estacion_id).first()
 
+# --------------------- OPERACIONES DE ESTADÍSTICAS (CORREGIDAS) ---------------------
+
 def get_autos_count(db: Session) -> int:
     """Obtiene el número total de autos eléctricos."""
-    # func.count() se usa para obtener el conteo de filas
-    return db.query(func.count(models.AutoElectricoSQL.id)).scalar_one_or_none() or 0
+    # CORRECCIÓN: usar .scalar() en lugar de .scalar_one_or_none()
+    result = db.query(func.count(models.AutoElectricoSQL.id)).scalar()
+    return result if result else 0
 
-def get_average_autonomia(db: Session) -> float | None:
+def get_average_autonomia(db: Session) -> float:
     """Obtiene el promedio de autonomía de todos los autos eléctricos."""
-    # func.avg() devuelve None si no hay filas, por lo que lo manejamos en main.py
-    return db.query(func.avg(models.AutoElectricoSQL.autonomia_km)).scalar_one_or_none()
+    # CORRECCIÓN: usar .scalar() en lugar de .scalar_one_or_none()
+    result = db.query(func.avg(models.AutoElectricoSQL.autonomia_km)).scalar()
+    return round(result, 2) if result else 0.0
+
+def get_cargas_count(db: Session) -> int:
+    """Obtiene el número total de registros de carga."""
+    result = db.query(func.count(models.CargaSQL.id)).scalar()
+    return result if result else 0
+
+def get_estaciones_count(db: Session) -> int:
+    """Obtiene el número total de estaciones."""
+    result = db.query(func.count(models.EstacionSQL.id)).scalar()
+    return result if result else 0
