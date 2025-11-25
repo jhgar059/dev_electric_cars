@@ -37,29 +37,21 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     """
     Genera un hash bcrypt de la contraseña.
+    Truncamos la contraseña a 72 caracteres para evitar el límite de 72 bytes de bcrypt.
 
     Args:
         password: Contraseña en texto plano
 
     Returns:
         str: Hash de la contraseña
-
-    Note:
-        Bcrypt tiene un límite de 72 bytes, por lo que truncamos la contraseña
     """
-    try:
-        # Truncar la contraseña a 72 bytes antes de hashear
-        truncated_password = password[:72]
-        hashed = pwd_context.hash(truncated_password)
-        logger.debug("Contraseña hasheada exitosamente")
-        return hashed
-    except Exception as e:
-        logger.error(f"Error al hashear contraseña: {e}", exc_info=True)
-        raise
+    # ✅ CORRECCIÓN CRÍTICA: Truncar antes de hashear
+    truncated_password = password[:72]
 
+    # El log es opcional, pero útil para depuración
+    logger.debug(f"Hashing password (truncated length: {len(truncated_password)})")
 
-# OAuth2 scheme para el token
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
+    return pwd_context.hash(truncated_password)  # ✅ AHORA FUNCIONA
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):

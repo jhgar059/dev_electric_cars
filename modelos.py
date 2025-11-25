@@ -128,6 +128,8 @@ class UsuarioRespuesta(BaseModel):
     cedula: str
     celular: Optional[str]
     activo: bool
+    password: str = Field(..., min_length=8, max_length=72)  # ✅ ¡Correcto!
+    password_confirmacion: str = Field(..., min_length=8, max_length=72)  # ✅ ¡Correcto!
 
     class Config:
         from_attributes = True
