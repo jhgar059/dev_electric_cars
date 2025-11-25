@@ -135,66 +135,76 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="/index">
-                <i class="fas fa-bolt me-2"></i>Electric Cars DB
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    {% if not is_home_page %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/cars"><i class="fas fa-car me-2"></i>Autos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/charges"><i class="fas fa-battery-full me-2"></i>Cargas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/stations"><i class="fas fa-charging-station me-2"></i>Estaciones</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-history me-2"></i>Historial
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/deleted_cars">Autos Eliminados</a></li>
-                            <li><a class="dropdown-item" href="/deleted_charges">Cargas Eliminadas</a></li>
-                            <li><a class="dropdown-item" href="/deleted_stations">Estaciones Eliminadas</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/statistics_page"><i class="fas fa-chart-bar me-2"></i>Estadísticas</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProject" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-folder-open me-2"></i>Proyecto
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/project_objective">Objetivo</a></li>
-                            <li><a class="dropdown-item" href="/planning_design">Planeación y Diseño</a></li>
-                            <li><a class="dropdown-item" href="/mockups_wireframes">Mockups</a></li>
-                            <li><a class="dropdown-item" href="/endpoint_map">Mapa de Endpoints</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/developer_info">Acerca del Desarrollador</a></li>
-                        </ul>
-                    </li>
-                    {% endif %}
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm" style="background-color: var(--header-bg);">
+    <div class="container">
+        <a class="navbar-brand text-primary fw-bold" href="{{ url_for('root') }}">
+            <i class="fas fa-bolt me-2"></i>Electric Cars Database
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-                    <!-- Botón de Cerrar Sesión - Se muestra en todas las páginas internas -->
-                    {% if not is_home_page %}
-                    <li class="nav-item ms-2">
-                        <a class="btn btn-logout btn-sm" href="/api/logout">
-                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                {% if is_logged_in %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('cars_page') }}"><i class="fas fa-car me-1"></i>Autos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('charges_page') }}"><i class="fas fa-plug me-1"></i>Cargas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('stations_page') }}"><i class="fas fa-charging-station me-1"></i>Estaciones</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownHistorial" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-history me-1"></i>Historial
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownHistorial">
+                        <li><a class="dropdown-item" href="{{ url_for('deleted_cars_page') }}">Autos Eliminados</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('deleted_charges_page') }}">Cargas Eliminadas</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('deleted_stations_page') }}">Estaciones Eliminadas</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('statistics_page') }}"><i class="fas fa-chart-bar me-1"></i>Estadísticas</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProyecto" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-folder-open me-1"></i>Proyecto
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownProyecto">
+                        <li><a class="dropdown-item" href="{{ url_for('project_objective_page') }}">Objetivo</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('planning_design_page') }}">Planeación y Diseño</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('mockups_wireframes_page') }}">Mockups y Wireframes</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('endpoint_map_page') }}">Mapa de Endpoints</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('developer_info_page') }}">Acerca del Desarrollador</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+
+            <div class="d-flex">
+                {% if not is_logged_in %}
+                <a href="{{ url_for('login_form') }}" class="btn btn-primary me-2"><i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión</a>
+                <a href="{{ url_for('register_form') }}" class="btn btn-outline-secondary me-2"><i class="fas fa-user-plus me-1"></i> Registro</a>
+                <a href="{{ url_for('change_password_form') }}" class="btn btn-outline-info"><i class="fas fa-lock me-1"></i> Cambiar Contraseña</a>
+                {% else %}
+                <span class="navbar-text me-3 d-none d-lg-block text-dark">
+                    Bienvenido, **{{ current_user.nombre | default('Usuario') }}**
+                </span>
+                <form action="{{ url_for('logout_user') }}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión</button>
+                </form>
+                {% endif %}
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <main class="flex-grow-1" style="margin-top: 80px;">
         {% block content %}{% endblock %}
