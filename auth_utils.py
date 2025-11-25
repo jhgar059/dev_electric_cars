@@ -33,11 +33,20 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     """
-    Genera un hash bcrypt de la contraseña.
+    Genera un hash bcrypt de la contraseña, asegurando que no exceda 72 bytes.
     """
-    # Truncar la contraseña a 72 bytes antes de hashear (corrección previa)
-    truncated_password = password[:72]
-    return pwd_context.hash(truncated_password)
+
+    # 🔑 CORRECCIÓN CRÍTICA: TRUNCAMIENTO A NIVEL DE BYTES
+    # 1. Codificar la cadena a bytes (UTF-8 es el estándar).
+    password_bytes = password.encode('utf-8')
+
+    # 2. Truncar la cadena de bytes a 72 bytes.
+    # Esto asegura que el input a bcrypt cumple estrictamente su límite de 72 bytes,
+    # resolviendo el error independientemente de la codificación o contaminación.
+    truncated_bytes = password_bytes[:72]
+
+    # 3. Hashear la cadena de bytes truncada.
+    return pwd_context.hash(truncated_bytes)
 
 
 # 🟢 SOLUCIÓN 2 (NUEVA): Definición de la función de dependencia
