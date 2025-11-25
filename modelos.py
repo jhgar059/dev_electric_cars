@@ -17,6 +17,9 @@ class AutoElectrico(BaseModel):
 class AutoElectricoConID(AutoElectrico):
     id: int
 
+    class Config:
+        from_attributes = True
+
 
 class AutoActualizado(BaseModel):
     marca: Optional[str] = Field(None, min_length=2, max_length=30)
@@ -43,6 +46,9 @@ class CargaBase(BaseModel):
 
 class CargaConID(CargaBase):
     id: int
+
+    class Config:
+        from_attributes = True
 
 
 class CargaActualizada(BaseModel):
@@ -74,6 +80,9 @@ class EstacionBase(BaseModel):
 class EstacionConID(EstacionBase):
     id: int
 
+    class Config:
+        from_attributes = True
+
 
 class EstacionActualizada(BaseModel):
     nombre: Optional[str] = Field(None, min_length=2, max_length=50)
@@ -96,12 +105,32 @@ class UsuarioRegistro(BaseModel):
     correo: EmailStr
     cedula: str = Field(..., min_length=5, max_length=15)
     celular: str = Field(..., min_length=7, max_length=15)
-password: str = Field(
+    password: str = Field(
         ...,
         min_length=8,
-        max_length=72,  # CLAVE: Límite de 72 bytes
+        max_length=72,
         description="debe contener entre 8 y 72 caracteres y un número."
     )
+
+    @field_validator('password')
+    @classmethod
+    def validate_password_content(cls, v: str):
+        if not any(char.isdigit() for char in v):
+            raise ValueError('La contraseña debe contener al menos un número')
+        return v
+
+
+class UsuarioRespuesta(BaseModel):
+    id: int
+    nombre: str
+    edad: int
+    correo: str
+    cedula: str
+    celular: Optional[str]
+    activo: bool
+
+    class Config:
+        from_attributes = True
 
 
 class UsuarioLogin(BaseModel):
@@ -112,24 +141,23 @@ class UsuarioLogin(BaseModel):
 class CambioPassword(BaseModel):
     identificador: str
     password_anterior: Optional[str] = None
-
-    # CORRECCIÓN CLAVE: Aplicar límite de 72 bytes a la nueva contraseña
     password_nueva: str = Field(..., min_length=8, max_length=72)
     password_nueva_confirmacion: str = Field(..., min_length=8, max_length=72)
 
-    # Usar @field_validator para compatibilidad con Pydantic v2
-    @field_validator('password_nueva', 'password_nueva_confirmacion')
+    @field_validator('password_nueva')
     @classmethod
     def validate_new_password_content(cls, v: str):
         if len(v) < 8:
             raise ValueError('La nueva contraseña debe tener al menos 8 caracteres')
+        if len(v) > 72:
+            raise ValueError('La nueva contraseña no puede exceder 72 caracteres')
         if not any(char.isdigit() for char in v):
             raise ValueError('La nueva contraseña debe contener al menos un número')
         return v
 
     @field_validator('password_nueva_confirmacion')
     @classmethod
-    def passwords_match(cls, v: str, info: ValidationInfo):  # <-- CORREGIDO
+    def passwords_match(cls, v: str, info: ValidationInfo):
         if 'password_nueva' in info.data and v != info.data['password_nueva']:
             raise ValueError('Las contraseñas no coinciden')
         return v
