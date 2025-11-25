@@ -2,7 +2,10 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer # ⬅️ CLASE IMPORTADA
 from sqlalchemy.orm import Session
-# ... otras importaciones ...
+import crud_usuarios as crud
+from database import get_db
+import logging
+from passlib.context import CryptContext
 
 logger = logging.getLogger("auth_utils")
 
@@ -12,9 +15,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
 
 # Configurar el contexto de contraseñas con bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# ... el resto del archivo sigue igual ...
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verifica si la contraseña plana coincide con el hash.
