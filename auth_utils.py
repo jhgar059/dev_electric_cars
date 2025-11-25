@@ -1,4 +1,4 @@
-from passlib.context import CryptContext
+from werkzeug.security import generate_password_hash, check_password_hash
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -12,41 +12,43 @@ logger = logging.getLogger("auth_utils")
 # 🟢 SOLUCIÓN 1 (YA APLICADA): Definición de oauth2_scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
 
-# Configurar el contexto de contraseñas con bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Verifica si la contraseña plana coincide con el hash.
+    Verifica si la contraseña plana coincide con el hash usando Werkzeug.
+
+    Args:
+        plain_password: Contraseña en texto plano
+        hashed_password: Hash de la contraseña almacenado en la BD
+
+    Returns:
+        bool: True si coinciden, False en caso contrario
     """
     try:
-        # Truncar la contraseña a 72 bytes antes de verificar (corrección previa)
-        truncated_password = plain_password[:72]
-        result = pwd_context.verify(truncated_password, hashed_password)
-        logger.debug(f"Verificación de contraseña: {result}")
+        # Werkzeug gestiona la longitud de forma interna.
+        # Ya no es necesario el trucado a 72 bytes.
+        result = check_password_hash(hashed_password, plain_password)
+        logger.debug(f"Verificación de contraseña con Werkzeug: {result}")
         return result
     except Exception as e:
-        logger.error(f"Error al verificar contraseña: {e}", exc_info=True)
+        logger.error(f"Error al verificar contraseña con Werkzeug: {e}", exc_info=True)
         return False
 
 
 def get_password_hash(password: str) -> str:
     """
-    Genera un hash bcrypt de la contraseña, asegurando que no exceda 72 bytes.
+    Genera un hash seguro de la contraseña usando Werkzeug (por defecto, utiliza PBKDF2).
+
+    Args:
+        password: Contraseña en texto plano
+
+    Returns:
+        str: Hash de la contraseña
     """
-
-    # 🔑 CORRECCIÓN CRÍTICA: TRUNCAMIENTO A NIVEL DE BYTES
-    # 1. Codificar la cadena a bytes (UTF-8 es el estándar).
-    password_bytes = password.encode('utf-8')
-
-    # 2. Truncar la cadena de bytes a 72 bytes.
-    # Esto asegura que el input a bcrypt cumple estrictamente su límite de 72 bytes,
-    # resolviendo el error independientemente de la codificación o contaminación.
-    truncated_bytes = password_bytes[:72]
-
-    # 3. Hashear la cadena de bytes truncada.
-    return pwd_context.hash(truncated_bytes)
+    # 🔑 Werkzeug es seguro por defecto (usa sha256 o sha512 en la configuración de hashing)
+    hashed_password = generate_password_hash(password)
+    logger.debug("Hash de contraseña generado con Werkzeug")
+    return hashed_password
 
 
 # 🟢 SOLUCIÓN 2 (NUEVA): Definición de la función de dependencia

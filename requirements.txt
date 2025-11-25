@@ -10,5 +10,5 @@ python-multipart==0.0.9
 loguru==0.7.2
 loguru==0.7.2
 # Nuevo: para hashing de contraseñas
-passlib[bcrypt]==1.7.4
+Werkzeug==3.0.1
 python-jose[cryptography]==3.3.0
