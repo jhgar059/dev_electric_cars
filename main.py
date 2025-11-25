@@ -701,7 +701,7 @@ async def get_charge_difficulty_distribution(db: Session = Depends(get_db)):
 @app.get("/health")
 async def health_check():
     """Endpoint para verificar que la aplicación está funcionando"""
-    return {"status": "healthy", "message": "La aplicacion está funcionando correctamente"}
+    return {"status": "healthy", "message": "La aplicación está funcionando correctamente"}
 
 
 if __name__ == "__main__":

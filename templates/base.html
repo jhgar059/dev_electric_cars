@@ -24,170 +24,144 @@
             --card-bg: #ffffff;
         }
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--light-bg);
             color: var(--dark-text);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            padding-top: 60px; /* Espacio para el navbar fijo */
         }
-        .navbar {
-            background-color: var(--header-bg);
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,.04);
+        .navbar-brand .electric-icon {
+            color: var(--primary-color);
+            transition: color 0.3s ease;
         }
-        .navbar-brand {
-            font-weight: 700;
-            color: var(--primary-color) !important;
-        }
-        .nav-link {
-            color: var(--dark-text) !important;
-            font-weight: 500;
-            margin-right: 15px;
-        }
-        .nav-link:hover {
-            color: var(--primary-color) !important;
-        }
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        .btn-logout {
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
-            color: white;
-        }
-        .btn-logout:hover {
-            background-color: #b91c1c;
-            border-color: #b91c1c;
-            color: white;
+        .navbar-brand:hover .electric-icon {
+            color: #1e40af; /* Un azul más oscuro al hacer hover */
         }
         .section-title {
             color: var(--primary-color);
             font-weight: 700;
-            margin-bottom: 2rem;
-            text-align: center;
-            position: relative;
+            border-bottom: 3px solid var(--border-color);
             padding-bottom: 10px;
-        }
-        .section-title::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            bottom: 0;
-            transform: translateX(-50%);
-            height: 3px;
-            width: 80px;
-            background-color: var(--primary-color);
-            border-radius: 2px;
+            margin-bottom: 30px;
         }
         .info-block {
             background-color: var(--card-bg);
+            padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,.05);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
         }
-        .footer {
-            background-color: var(--dark-text);
-            color: white;
-            padding: 2rem 0;
-            margin-top: auto;
-        }
-        .footer a {
-            color: white;
-            text-decoration: none;
-        }
+        /* Estilos de animación */
         .fade-in {
             opacity: 0;
-            transform: translateY(20px);
             transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            transform: translateY(20px);
         }
         .fade-in.appear {
             opacity: 1;
             transform: translateY(0);
         }
-        .hero-section {
-            background: linear-gradient(to right, var(--primary-color), #4a7ffb);
-            color: white;
-            padding: 6rem 0;
-            text-align: center;
-            border-radius: 0 0 15px 15px;
-            margin-bottom: 3rem;
-            box-shadow: 0 8px 16px rgba(0,0,0,.1);
-        }
+        /* Estilo para imágenes en tablas */
         .img-thumbnail-square {
-            width: 80px;
-            height: 80px;
+            width: 50px;
+            height: 50px;
             object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        .chart-container {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,.05);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border-color);
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="/index">
-                <i class="fas fa-bolt me-2"></i>Electric Cars DB
+
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm" style="background-color: var(--header-bg);">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="{{ url_for('index_page') }}">
+                <i class="fas fa-bolt electric-icon me-2"></i>
+                Electric Cars DB
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    {% if not is_home_page %}
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                    {% if current_user %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/cars"><i class="fas fa-car me-2"></i>Autos</a>
+                        <a class="nav-link" aria-current="page" href="{{ url_for('index_page') }}">
+                            <i class="fas fa-home me-1"></i> Inicio
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/charges"><i class="fas fa-battery-full me-2"></i>Cargas</a>
+                        <a class="nav-link" href="{{ url_for('cars_page') }}">
+                            <i class="fas fa-car me-1"></i> Autos
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/stations"><i class="fas fa-charging-station me-2"></i>Estaciones</a>
+                        <a class="nav-link" href="{{ url_for('charges_page') }}">
+                            <i class="fas fa-bolt me-1"></i> Cargas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('stations_page') }}">
+                            <i class="fas fa-charging-station me-1"></i> Estaciones
+                        </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-history me-2"></i>Historial
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownHistorial" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-history me-1"></i> Historial
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/deleted_cars">Autos Eliminados</a></li>
-                            <li><a class="dropdown-item" href="/deleted_charges">Cargas Eliminadas</a></li>
-                            <li><a class="dropdown-item" href="/deleted_stations">Estaciones Eliminadas</a></li>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownHistorial">
+                            <li><a class="dropdown-item" href="{{ url_for('deleted_cars_page') }}"><i class="fas fa-car me-2"></i>Autos Eliminados</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('deleted_charges_page') }}"><i class="fas fa-bolt me-2"></i>Cargas Eliminadas</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('deleted_stations_page') }}"><i class="fas fa-charging-station me-2"></i>Estaciones Eliminadas</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/statistics_page"><i class="fas fa-chart-bar me-2"></i>Estadísticas</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProject" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-folder-open me-2"></i>Proyecto
+                        <a class="nav-link" href="{{ url_for('statistics_page') }}">
+                            <i class="fas fa-chart-bar me-1"></i> Estadísticas
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/project_objective">Objetivo</a></li>
-                            <li><a class="dropdown-item" href="/planning_design">Planeación y Diseño</a></li>
-                            <li><a class="dropdown-item" href="/mockups_wireframes">Mockups</a></li>
-                            <li><a class="dropdown-item" href="/endpoint_map">Mapa de Endpoints</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/developer_info">Acerca del Desarrollador</a></li>
-                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('project_objective_page') }}">
+                            <i class="fas fa-project-diagram me-1"></i> Proyecto
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="{{ url_for('welcome_page') }}">
+                            <i class="fas fa-home me-1"></i> Inicio
+                        </a>
                     </li>
                     {% endif %}
+                </ul>
 
-                    <!-- Botón de Cerrar Sesión - Se muestra en todas las páginas internas -->
-                    {% if not is_home_page %}
-                    <li class="nav-item ms-2">
-                        <a class="btn btn-logout btn-sm" href="/api/logout">
-                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                <ul class="navbar-nav">
+                    {% if current_user %}
+                    <li class="nav-item">
+                        <span class="nav-link text-success me-2">
+                            <i class="fas fa-user-circle me-1"></i> {{ current_user.nombre if current_user.nombre else 'Usuario' }}
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <form action="{{ url_for('logout_user') }}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm mt-1 mt-lg-0">
+                                <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
+                            </button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="btn btn-outline-primary me-2 mt-1 mt-lg-0" href="{{ url_for('login_form') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary me-2 mt-1 mt-lg-0" href="{{ url_for('register_form') }}">
+                            <i class="fas fa-user-plus me-1"></i> Registro
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary mt-1 mt-lg-0" href="{{ url_for('change_password_form') }}">
+                            <i class="fas fa-lock me-1"></i> Cambiar Contraseña
                         </a>
                     </li>
                     {% endif %}
@@ -196,27 +170,24 @@
         </div>
     </nav>
 
-    <main class="flex-grow-1" style="margin-top: 80px;">
+    <main>
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer mt-5">
+    <footer class="bg-white border-top mt-5 py-4">
         <div class="container text-center">
-            <p>&copy; 2025 Electric Cars Database. Todos los derechos reservados.</p>
-            <p>Desarrollado por <a href="/developer_info">Jhon David Gonzalez Garcia</a></p>
-            <div class="social-links mt-3">
-                <a href="https://github.com/jhgar059" target="_blank" class="text-light mx-2">
-                    <i class="fab fa-github fa-lg"></i>
-                </a>
-                <a href="https://www.linkedin.com/in/jhon-david-gonzález-garcía-a5416b2a1/" target="_blank" class="text-light mx-2">
-                    <i class="fab fa-linkedin fa-lg"></i>
-                </a>
-            </div>
+            <p class="mb-1 text-muted">&copy; {{ 'now'|date('Y') }} Electric Cars Database. Desarrollado por Jhon David Gonzalez Garcia.</p>
+            <p class="mb-0">
+                <a href="{{ url_for('project_objective_page') }}" class="text-secondary text-decoration-none">Objetivo del Proyecto</a> |
+                <a href="{{ url_for('developer_info_page') }}" class="text-secondary text-decoration-none">Acerca del Desarrollador</a>
+            </p>
         </div>
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
     <script>
+        // Función para la animación de elementos al hacer scroll (fade-in)
         function animateOnScroll() {
             const elements = document.querySelectorAll('.fade-in');
             const observer = new IntersectionObserver((entries) => {
@@ -230,6 +201,7 @@
             elements.forEach(el => observer.observe(el));
         }
 
+        // Función para previsualizar imágenes subidas en formularios
         function previewImage(event, previewId) {
             const reader = new FileReader();
             reader.onload = function(){
@@ -249,6 +221,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             animateOnScroll();
+            // Inicialización de tooltips de Bootstrap
             const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
             tooltips.forEach(tooltip => {
                 new bootstrap.Tooltip(tooltip);
