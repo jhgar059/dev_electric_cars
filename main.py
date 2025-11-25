@@ -1,6 +1,6 @@
-# main.py - VERSIÓN COMPLETA Y CORREGIDA
+# main.py - VERSIÓN COMPLETA CON SISTEMA DE SESIÓN Y LOGOUT
 
-from fastapi import FastAPI, HTTPException, Depends, Request, File, UploadFile, Form, status, Response
+from fastapi import FastAPI, HTTPException, Depends, Request, File, UploadFile, Form, status, Response, Cookie
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -65,12 +65,37 @@ UPLOAD_DIRECTORY.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+# --------------------- FUNCIÓN HELPER PARA VERIFICAR SESIÓN ---------------------
+
+def check_user_session(request: Request) -> dict:
+    """
+    Verifica si el usuario tiene una sesión activa.
+    Retorna un diccionario con información de la sesión.
+    """
+    user_cedula = request.cookies.get("user_session")
+
+    if user_cedula:
+        return {
+            "logged_in": True,
+            "user_cedula": user_cedula
+        }
+    else:
+        return {
+            "logged_in": False,
+            "user_cedula": None
+        }
+
+
 # --------------------- VISTAS HTML SIN AUTENTICACIÓN ---------------------
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def welcome_page(request: Request):
     try:
-        return templates.TemplateResponse("welcome.html", {"request": request})
+        session_info = check_user_session(request)
+        return templates.TemplateResponse("welcome.html", {
+            "request": request,
+            **session_info
+        })
     except Exception as e:
         logger.error(f"Error en welcome_page: {e}", exc_info=True)
         raise
@@ -80,6 +105,8 @@ async def welcome_page(request: Request):
 async def index_page(request: Request, db: Session = Depends(get_db)):
     """Página de inicio con estadísticas - PÚBLICA"""
     try:
+        session_info = check_user_session(request)
+
         total_autos = crud.get_autos_count(db)
         total_cargas = crud.get_cargas_count(db)
         total_estaciones = crud.get_estaciones_count(db)
@@ -91,7 +118,8 @@ async def index_page(request: Request, db: Session = Depends(get_db)):
             "total_cargas": total_cargas,
             "total_estaciones": total_estaciones,
             "avg_autonomia": avg_autonomia,
-            "is_home_page": True
+            "is_home_page": True,
+            **session_info
         })
     except Exception as e:
         logger.error(f"Error en index_page: {e}", exc_info=True)
@@ -100,39 +128,66 @@ async def index_page(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/project_objective", response_class=HTMLResponse, include_in_schema=False)
 async def project_objective_page(request: Request):
-    return templates.TemplateResponse("project_objective.html", {"request": request})
+    session_info = check_user_session(request)
+    return templates.TemplateResponse("project_objective.html", {
+        "request": request,
+        **session_info
+    })
 
 
 @app.get("/mockups_wireframes", response_class=HTMLResponse, include_in_schema=False)
 async def mockups_wireframes_page(request: Request):
-    return templates.TemplateResponse("mockups_wireframes.html", {"request": request})
+    session_info = check_user_session(request)
+    return templates.TemplateResponse("mockups_wireframes.html", {
+        "request": request,
+        **session_info
+    })
 
 
 @app.get("/endpoint_map", response_class=HTMLResponse, include_in_schema=False)
 async def endpoint_map_page(request: Request):
-    return templates.TemplateResponse("endpoint_map.html", {"request": request})
+    session_info = check_user_session(request)
+    return templates.TemplateResponse("endpoint_map.html", {
+        "request": request,
+        **session_info
+    })
 
 
 @app.get("/developer_info", response_class=HTMLResponse, include_in_schema=False)
 async def developer_info_page(request: Request):
-    return templates.TemplateResponse("developer_info.html", {"request": request})
+    session_info = check_user_session(request)
+    return templates.TemplateResponse("developer_info.html", {
+        "request": request,
+        **session_info
+    })
 
 
 @app.get("/planning_design", response_class=HTMLResponse, include_in_schema=False)
 async def planning_design_page(request: Request):
-    return templates.TemplateResponse("planning_design.html", {"request": request})
+    session_info = check_user_session(request)
+    return templates.TemplateResponse("planning_design.html", {
+        "request": request,
+        **session_info
+    })
 
 
 # --------------------- AUTENTICACIÓN Y REGISTRO ---------------------
 
 @app.get("/login", response_class=HTMLResponse, include_in_schema=False)
 async def login_form(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "error_message": None})
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "error_message": None
+    })
 
 
 @app.get("/register", response_class=HTMLResponse, include_in_schema=False)
 async def register_form(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request, "error_message": None, "form_data": {}})
+    return templates.TemplateResponse("register.html", {
+        "request": request,
+        "error_message": None,
+        "form_data": {}
+    })
 
 
 @app.post("/register", response_class=HTMLResponse, include_in_schema=False)
@@ -249,11 +304,22 @@ async def login_for_access_token(
                 status_code=403
             )
 
-        # Login exitoso
+        # Login exitoso - Crear sesión con cookie
         logger.info(f"Login exitoso para: {user.cedula}")
 
-        # Redireccionar a /index
-        return RedirectResponse(url="/index", status_code=status.HTTP_302_FOUND)
+        # Crear respuesta de redirección
+        response = RedirectResponse(url="/index", status_code=status.HTTP_302_FOUND)
+
+        # Establecer cookie de sesión (válida por 7 días)
+        response.set_cookie(
+            key="user_session",
+            value=user.cedula,
+            max_age=7 * 24 * 60 * 60,  # 7 días en segundos
+            httponly=True,  # Seguridad: no accesible desde JavaScript
+            samesite="lax"  # Protección CSRF
+        )
+
+        return response
 
     except Exception as e:
         logger.error(f"Error crítico en login: {e}", exc_info=True)
@@ -269,9 +335,15 @@ async def login_for_access_token(
 
 @app.get("/change_password", response_class=HTMLResponse, include_in_schema=False)
 async def change_password_form(request: Request):
+    session_info = check_user_session(request)
     return templates.TemplateResponse(
         "change_password.html",
-        {"request": request, "error_message": None, "form_data": {}}
+        {
+            "request": request,
+            "error_message": None,
+            "form_data": {},
+            **session_info
+        }
     )
 
 
@@ -336,59 +408,89 @@ async def handle_change_password(
 
 @app.get("/api/logout")
 async def logout():
-    """Cerrar sesión"""
-    return RedirectResponse(
+    """Cerrar sesión - Elimina la cookie de sesión"""
+    logger.info("Usuario cerrando sesión")
+
+    # Crear respuesta de redirección
+    response = RedirectResponse(
         url="/login?success_message=Sesión%20cerrada%20exitosamente.",
         status_code=status.HTTP_302_FOUND
     )
+
+    # Eliminar la cookie de sesión
+    response.delete_cookie(key="user_session")
+
+    return response
 
 
 # --------------------- PÁGINAS PROTEGIDAS (SIN PROTECCIÓN POR AHORA) ---------------------
 
 @app.get("/cars", response_class=HTMLResponse, include_in_schema=False)
 async def cars_page(request: Request):
-    return templates.TemplateResponse("cars.html", {"request": request})
+    session_info = check_user_session(request)
+    return templates.TemplateResponse("cars.html", {
+        "request": request,
+        **session_info
+    })
 
 
 @app.get("/charges", response_class=HTMLResponse, include_in_schema=False)
 async def charges_page(request: Request):
-    return templates.TemplateResponse("charges.html", {"request": request})
+    session_info = check_user_session(request)
+    return templates.TemplateResponse("charges.html", {
+        "request": request,
+        **session_info
+    })
 
 
 @app.get("/stations", response_class=HTMLResponse, include_in_schema=False)
 async def stations_page(request: Request):
-    return templates.TemplateResponse("stations.html", {"request": request})
+    session_info = check_user_session(request)
+    return templates.TemplateResponse("stations.html", {
+        "request": request,
+        **session_info
+    })
 
 
 @app.get("/statistics_page", response_class=HTMLResponse, include_in_schema=False)
 async def statistics_page(request: Request):
-    return templates.TemplateResponse("statistics_page.html", {"request": request})
+    session_info = check_user_session(request)
+    return templates.TemplateResponse("statistics_page.html", {
+        "request": request,
+        **session_info
+    })
 
 
 @app.get("/deleted_cars", response_class=HTMLResponse, include_in_schema=False)
 async def deleted_cars_page(request: Request, db: Session = Depends(get_db)):
+    session_info = check_user_session(request)
     autos_eliminados = crud.get_autos_eliminados(db)
     return templates.TemplateResponse("deleted_cars.html", {
         "request": request,
-        "autos_eliminados": autos_eliminados
+        "autos_eliminados": autos_eliminados,
+        **session_info
     })
 
 
 @app.get("/deleted_charges", response_class=HTMLResponse, include_in_schema=False)
 async def deleted_charges_page(request: Request, db: Session = Depends(get_db)):
+    session_info = check_user_session(request)
     cargas_eliminadas = crud.get_cargas_eliminadas(db)
     return templates.TemplateResponse("deleted_charges.html", {
         "request": request,
-        "cargas_eliminadas": cargas_eliminadas
+        "cargas_eliminadas": cargas_eliminadas,
+        **session_info
     })
 
 
 @app.get("/deleted_stations", response_class=HTMLResponse, include_in_schema=False)
 async def deleted_stations_page(request: Request, db: Session = Depends(get_db)):
+    session_info = check_user_session(request)
     estaciones_eliminadas = crud.get_estaciones_eliminadas(db)
     return templates.TemplateResponse("deleted_stations.html", {
         "request": request,
-        "estaciones_eliminadas": estaciones_eliminadas
+        "estaciones_eliminadas": estaciones_eliminadas,
+        **session_info
     })
 
 
@@ -433,7 +535,7 @@ async def update_auto_endpoint(auto_id: int, auto: AutoActualizado, db: Session 
 
 @app.delete("/api/autos/{auto_id}", status_code=204, tags=["Autos"])
 async def delete_auto_endpoint(auto_id: int, db: Session = Depends(get_db)):
-    success = crud.delete_auto_to_history(db, auto_id)
+    success = crud.delete_auto(db, auto_id)
     if not success:
         raise HTTPException(status_code=404, detail="Auto no encontrado")
     return Response(status_code=204)
@@ -448,7 +550,7 @@ async def read_cargas(skip: int = 0, limit: int = 100, db: Session = Depends(get
 
 @app.get("/api/cargas/search/", response_model=List[CargaConID], tags=["Cargas"])
 async def search_cargas(modelo_auto: str, db: Session = Depends(get_db)):
-    cargas = crud.get_carga_by_modelo_auto(db, modelo_auto)
+    cargas = crud.get_carga_by_modelo(db, modelo_auto)
     if not cargas:
         raise HTTPException(status_code=404, detail="No se encontraron cargas")
     return cargas
@@ -477,7 +579,7 @@ async def update_carga_endpoint(carga_id: int, carga: CargaActualizada, db: Sess
 
 @app.delete("/api/cargas/{carga_id}", status_code=204, tags=["Cargas"])
 async def delete_carga_endpoint(carga_id: int, db: Session = Depends(get_db)):
-    success = crud.delete_carga_to_history(db, carga_id)
+    success = crud.delete_carga(db, carga_id)
     if not success:
         raise HTTPException(status_code=404, detail="Carga no encontrada")
     return Response(status_code=204)
@@ -521,7 +623,7 @@ async def update_estacion_endpoint(estacion_id: int, estacion: EstacionActualiza
 
 @app.delete("/api/estaciones/{estacion_id}", status_code=204, tags=["Estaciones"])
 async def delete_estacion_endpoint(estacion_id: int, db: Session = Depends(get_db)):
-    success = crud.delete_estacion_to_history(db, estacion_id)
+    success = crud.delete_estacion(db, estacion_id)
     if not success:
         raise HTTPException(status_code=404, detail="Estación no encontrada")
     return Response(status_code=204)
