@@ -707,5 +707,5 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
 
-    logger.info("Iniciando servidor en modo desarrollo")
+    logger.info("Iniciando el servidor en modo desarrollo")
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")
