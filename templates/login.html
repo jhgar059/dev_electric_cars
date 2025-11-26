@@ -16,8 +16,14 @@
                 </div>
                 {% endif %}
 
+                {% if request.query_params.get('error_message') %}
+                <div class="alert alert-warning fade-in" role="alert">
+                    <i class="fas fa-lock me-2"></i>{{ request.query_params.get('error_message') }}
+                </div>
+                {% endif %}
+
                 {% if request.query_params.get('success_message') %}
-                <div class="alert alert-success mt-4 fade-in" role="alert">
+                <div class="alert alert-success fade-in" role="alert">
                     <i class="fas fa-check-circle me-2"></i>{{ request.query_params.get('success_message') }}
                 </div>
                 {% endif %}
@@ -29,7 +35,7 @@
                             <i class="fas fa-id-card me-2"></i>Cédula o Correo
                         </label>
                         <input type="text" class="form-control" id="username"
-                               name="username" required>
+                               name="username" required placeholder="Ingresa tu cédula o correo">
                         <div class="invalid-feedback">Este campo es obligatorio.</div>
                     </div>
 
@@ -39,7 +45,7 @@
                         </label>
                         <div class="input-group">
                             <input type="password" class="form-control" id="password"
-                                   name="password" required minlength="1">
+                                   name="password" required minlength="1" placeholder="Ingresa tu contraseña">
                             <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                 <i class="fas fa-eye-slash"></i>
                             </button>
@@ -52,10 +58,12 @@
                     </button>
                 </form>
 
-                <p class="text-center mt-3 mb-0">
-                    ¿No tienes cuenta? <a href="/register" class="text-primary">Regístrate</a>
+                <hr class="my-4">
+
+                <p class="text-center mb-2">
+                    ¿No tienes cuenta? <a href="/register" class="text-primary fw-bold">Regístrate aquí</a>
                 </p>
-                <p class="text-center mt-2 mb-0">
+                <p class="text-center mb-0">
                     <a href="/change_password" class="text-secondary">¿Olvidaste tu contraseña?</a>
                 </p>
 

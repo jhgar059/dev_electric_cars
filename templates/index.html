@@ -15,7 +15,6 @@
                     Tu fuente completa de información sobre vehículos eléctricos.
                     Explora, compara y descubre el futuro de la movilidad sostenible.
                 </p>
-                {% if logged_in and current_user %}
                 <div class="d-flex gap-3">
                     <a href="{{ url_for('cars_page') }}" class="btn btn-light btn-lg">
                         <i class="fas fa-car me-2"></i>Ver Autos
@@ -24,16 +23,6 @@
                         <i class="fas fa-chart-bar me-2"></i>Estadísticas
                     </a>
                 </div>
-                {% else %}
-                <div class="d-flex gap-3">
-                    <a href="{{ url_for('login_form') }}" class="btn btn-light btn-lg">
-                        <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                    </a>
-                    <a href="{{ url_for('register_form') }}" class="btn btn-outline-light btn-lg">
-                        <i class="fas fa-user-plus me-2"></i>Registrarse
-                    </a>
-                </div>
-                {% endif %}
             </div>
             <div class="col-lg-6 text-center">
                 <div class="electric-car-animation position-relative">

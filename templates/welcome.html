@@ -11,54 +11,44 @@
         </h1>
         <p class="lead mb-5">
             Tu puerta de acceso a la información más completa sobre vehículos y estaciones de carga eléctricas.
-            ¡Únete a nuestra comunidad para empezar a explorar!
+            ¡Regístrate o inicia sesión para comenzar a explorar!
         </p>
     </div>
 </section>
 
 <div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <h2 class="text-center section-title mb-4">¿Qué quieres hacer?</h2>
+        <div class="col-md-10">
+            <h2 class="text-center section-title mb-5">Accede a la Plataforma</h2>
 
-            <div class="row text-center">
+            <div class="row text-center g-4">
 
-                <div class="col-sm-6 col-lg-3 mb-3">
-                    <a href="{{ url_for('login_form') }}" class="card card-hover shadow-lg p-3 h-100 text-decoration-none border-primary">
+                <div class="col-sm-6 col-lg-4">
+                    <a href="{{ url_for('login_form') }}" class="card card-hover shadow-lg p-4 h-100 text-decoration-none border-primary">
                         <div class="card-body">
-                            <i class="fas fa-sign-in-alt fa-3x text-primary mb-3"></i>
-                            <h5 class="card-title">Iniciar Sesión</h5>
+                            <i class="fas fa-sign-in-alt fa-4x text-primary mb-3"></i>
+                            <h5 class="card-title fw-bold">Iniciar Sesión</h5>
                             <p class="card-text text-muted">Accede con tu cédula o correo y contraseña.</p>
                         </div>
                     </a>
                 </div>
 
-                <div class="col-sm-6 col-lg-3 mb-3">
-                    <a href="{{ url_for('register_form') }}" class="card card-hover shadow-lg p-3 h-100 text-decoration-none border-success">
+                <div class="col-sm-6 col-lg-4">
+                    <a href="{{ url_for('register_form') }}" class="card card-hover shadow-lg p-4 h-100 text-decoration-none border-success">
                         <div class="card-body">
-                            <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
-                            <h5 class="card-title">Registro</h5>
-                            <p class="card-text text-muted">Crea una nueva cuenta de usuario.</p>
+                            <i class="fas fa-user-plus fa-4x text-success mb-3"></i>
+                            <h5 class="card-title fw-bold">Crear Cuenta</h5>
+                            <p class="card-text text-muted">Regístrate para acceder a todas las funcionalidades.</p>
                         </div>
                     </a>
                 </div>
 
-                <div class="col-sm-6 col-lg-3 mb-3">
-                    <a href="{{ url_for('login_form') }}" class="card card-hover shadow-lg p-3 h-100 text-decoration-none border-info">
+                <div class="col-sm-6 col-lg-4">
+                    <a href="{{ url_for('change_password_form') }}" class="card card-hover shadow-lg p-4 h-100 text-decoration-none border-warning">
                         <div class="card-body">
-                            <i class="fas fa-key fa-3x text-info mb-3"></i>
-                            <h5 class="card-title">Contraseña</h5>
-                            <p class="card-text text-muted">Ir a la página de inicio de sesión.</p>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-sm-6 col-lg-3 mb-3">
-                    <a href="{{ url_for('change_password_form') }}" class="card card-hover shadow-lg p-3 h-100 text-decoration-none border-warning">
-                        <div class="card-body">
-                            <i class="fas fa-lock fa-3x text-warning mb-3"></i>
-                            <h5 class="card-title">Cambio de Contraseña</h5>
-                            <p class="card-text text-muted">Modifica tu contraseña actual.</p>
+                            <i class="fas fa-lock fa-4x text-warning mb-3"></i>
+                            <h5 class="card-title fw-bold">Cambiar Contraseña</h5>
+                            <p class="card-text text-muted">¿Olvidaste tu contraseña? Cámbiala aquí.</p>
                         </div>
                     </a>
                 </div>
@@ -66,11 +56,43 @@
             </div>
 
             {% if request.query_params.get('success_message') %}
-            <div class="alert alert-success mt-4 fade-in" role="alert">
-                {{ request.query_params.get('success_message') }}
+            <div class="alert alert-success mt-5 fade-in text-center" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ request.query_params.get('success_message') }}
             </div>
             {% endif %}
 
+        </div>
+    </div>
+
+    <!-- Información sobre el proyecto -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-10">
+            <div class="info-block fade-in">
+                <h3 class="h4 text-primary mb-3 text-center">
+                    <i class="fas fa-info-circle me-2"></i>Sobre Esta Plataforma
+                </h3>
+                <p class="text-center lead text-muted">
+                    Electric Cars Database es una plataforma completa para la gestión y consulta de información sobre vehículos eléctricos, estaciones de carga y dificultades de carga. Accede a estadísticas detalladas, gestiona datos de forma eficiente y descubre todo sobre la movilidad eléctrica.
+                </p>
+                <div class="row mt-4 text-center">
+                    <div class="col-md-3">
+                        <i class="fas fa-car fa-2x text-primary mb-2"></i>
+                        <p class="small mb-0"><strong>Gestión de Autos</strong></p>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="fas fa-charging-station fa-2x text-success mb-2"></i>
+                        <p class="small mb-0"><strong>Estaciones de Carga</strong></p>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="fas fa-chart-line fa-2x text-info mb-2"></i>
+                        <p class="small mb-0"><strong>Estadísticas</strong></p>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="fas fa-history fa-2x text-secondary mb-2"></i>
+                        <p class="small mb-0"><strong>Historial Completo</strong></p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -79,9 +101,13 @@
 
 {% block scripts %}
 <style>
+    .card-hover {
+        transition: all 0.3s ease;
+        border-width: 2px;
+    }
     .card-hover:hover {
-        transform: translateY(-5px);
-        transition: transform 0.3s ease;
+        transform: translateY(-10px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
     }
 </style>
 {% endblock %}

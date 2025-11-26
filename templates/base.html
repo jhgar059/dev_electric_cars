@@ -98,14 +98,13 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if logged_in and current_user %}
+                    <!-- Menú completo solo para usuarios logueados -->
                     <li class="nav-item">
                         <a class="nav-link" aria-current="page" href="{{ url_for('index_page') }}">
                             <i class="fas fa-home me-1"></i> Inicio
                         </a>
                     </li>
-
-                    {% if logged_in and current_user %}
-                    <!-- Estas opciones solo se muestran cuando el usuario está logueado -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('cars_page') }}">
                             <i class="fas fa-car me-1"></i> Autos
@@ -136,13 +135,20 @@
                             <i class="fas fa-chart-bar me-1"></i> Estadísticas
                         </a>
                     </li>
-                    {% endif %}
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('project_objective_page') }}">
-                            <i class="fas fa-project-diagram me-1"></i> Proyecto
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProyecto" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-info-circle me-1"></i> Acerca del Proyecto
                         </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownProyecto">
+                            <li><a class="dropdown-item" href="{{ url_for('project_objective_page') }}"><i class="fas fa-bullseye me-2"></i>Objetivo del Proyecto</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('planning_design_page') }}"><i class="fas fa-drafting-compass me-2"></i>Planeación y Diseño</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('mockups_wireframes_page') }}"><i class="fas fa-paint-brush me-2"></i>Mockups y Wireframes</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('endpoint_map_page') }}"><i class="fas fa-map-signs me-2"></i>Mapa de Endpoints</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('developer_info_page') }}"><i class="fas fa-user-tie me-2"></i>Acerca del Desarrollador</a></li>
+                        </ul>
                     </li>
+                    {% endif %}
                 </ul>
 
                 <ul class="navbar-nav">
@@ -170,11 +176,6 @@
                             <i class="fas fa-user-plus me-1"></i> Registro
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-secondary mt-1 mt-lg-0" href="{{ url_for('change_password_form') }}">
-                            <i class="fas fa-lock me-1"></i> Cambiar Contraseña
-                        </a>
-                    </li>
                     {% endif %}
                 </ul>
             </div>
@@ -188,10 +189,13 @@
     <footer class="bg-white border-top mt-5 py-4">
         <div class="container text-center">
             <p class="mb-1 text-muted">&copy; Electric Cars Database. Desarrollado por Jhon David Gonzalez Garcia.</p>
+            {% if logged_in and current_user %}
             <p class="mb-0">
                 <a href="{{ url_for('project_objective_page') }}" class="text-secondary text-decoration-none">Objetivo del Proyecto</a> |
-                <a href="{{ url_for('developer_info_page') }}" class="text-secondary text-decoration-none">Acerca del Desarrollador</a>
+                <a href="{{ url_for('developer_info_page') }}" class="text-secondary text-decoration-none">Acerca del Desarrollador</a> |
+                <a href="{{ url_for('planning_design_page') }}" class="text-secondary text-decoration-none">Planeación y Diseño</a>
             </p>
+            {% endif %}
         </div>
     </footer>
 

@@ -421,10 +421,18 @@ async def logout():
 @app.get("/cars", response_class=HTMLResponse, include_in_schema=False)
 async def cars_page(request: Request, db: Session = Depends(get_db)):
     current_user = get_current_user_from_cookie(request, db)
+
+    # Protección: Redirigir a login si no está autenticado
+    if not current_user:
+        return RedirectResponse(
+            url="/login?error_message=Debes%20iniciar%20sesión%20para%20acceder%20a%20esta%20página.",
+            status_code=status.HTTP_302_FOUND
+        )
+
     return templates.TemplateResponse("cars.html", {
         "request": request,
         "current_user": current_user,
-        "logged_in": current_user is not None
+        "logged_in": True
     })
 
 
