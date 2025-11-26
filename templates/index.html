@@ -7,25 +7,36 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">
-                    <i class="fas fa-bolt electric-icon me-3"></i>
+                <h1 class="display-4 fw-bold mb-4 text-white">
+                    <i class="fas fa-bolt me-3"></i>
                     Bienvenido a Electric Cars Database
                 </h1>
-                <p class="lead mb-4">
+                <p class="lead mb-4 text-white">
                     Tu fuente completa de información sobre vehículos eléctricos.
                     Explora, compara y descubre el futuro de la movilidad sostenible.
                 </p>
+                {% if logged_in and current_user %}
                 <div class="d-flex gap-3">
                     <a href="{{ url_for('cars_page') }}" class="btn btn-light btn-lg">
-                        <i class="fas fa-car me-2"></i>Ver Carros
+                        <i class="fas fa-car me-2"></i>Ver Autos
                     </a>
                     <a href="{{ url_for('statistics_page') }}" class="btn btn-outline-light btn-lg">
                         <i class="fas fa-chart-bar me-2"></i>Estadísticas
                     </a>
                 </div>
+                {% else %}
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('login_form') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                    </a>
+                    <a href="{{ url_for('register_form') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Registrarse
+                    </a>
+                </div>
+                {% endif %}
             </div>
             <div class="col-lg-6 text-center">
-                <div class="electric-car-animation">
+                <div class="electric-car-animation position-relative">
                     <i class="fas fa-car-side" style="font-size: 8rem; color: rgba(255,255,255,0.8);"></i>
                     <i class="fas fa-charging-station" style="font-size: 7rem; color: rgba(255,255,255,0.6); margin-left: -2rem;"></i>
                     <i class="fas fa-bolt" style="font-size: 6rem; color: rgba(255,255,255,0.4); position: absolute; top: 20px; left: 10%;"></i>
@@ -98,7 +109,6 @@
 
 {% block scripts %}
 <script>
-    // No se necesitan scripts de Chart.js aquí, ya que las gráficas se movieron a statistics_page.html
-    // La autonomía promedio ya viene del servidor con Jinja2
+    // Animaciones ya están manejadas en base.html
 </script>
 {% endblock %}

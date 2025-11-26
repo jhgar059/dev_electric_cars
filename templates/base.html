@@ -27,14 +27,24 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--light-bg);
             color: var(--dark-text);
-            padding-top: 60px; /* Espacio para el navbar fijo */
+            padding-top: 60px;
         }
+
+        /* Estilos para la sección hero */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 0;
+            margin-top: -60px;
+            padding-top: 140px;
+            margin-bottom: 50px;
+        }
+
         .navbar-brand .electric-icon {
             color: var(--primary-color);
             transition: color 0.3s ease;
         }
         .navbar-brand:hover .electric-icon {
-            color: #1e40af; /* Un azul más oscuro al hacer hover */
+            color: #1e40af;
         }
         .section-title {
             color: var(--primary-color);
@@ -49,7 +59,6 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
         }
-        /* Estilos de animación */
         .fade-in {
             opacity: 0;
             transition: opacity 0.6s ease-out, transform 0.6s ease-out;
@@ -59,12 +68,18 @@
             opacity: 1;
             transform: translateY(0);
         }
-        /* Estilo para imágenes en tablas */
         .img-thumbnail-square {
             width: 50px;
             height: 50px;
             object-fit: cover;
             border-radius: 4px;
+        }
+        .chart-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
     </style>
 </head>
@@ -83,13 +98,14 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
-                    {% if current_user %}
                     <li class="nav-item">
                         <a class="nav-link" aria-current="page" href="{{ url_for('index_page') }}">
                             <i class="fas fa-home me-1"></i> Inicio
                         </a>
                     </li>
+
+                    {% if logged_in and current_user %}
+                    <!-- Estas opciones solo se muestran cuando el usuario está logueado -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('cars_page') }}">
                             <i class="fas fa-car me-1"></i> Autos
@@ -120,35 +136,30 @@
                             <i class="fas fa-chart-bar me-1"></i> Estadísticas
                         </a>
                     </li>
+                    {% endif %}
+
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('project_objective_page') }}">
                             <i class="fas fa-project-diagram me-1"></i> Proyecto
                         </a>
                     </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{{ url_for('welcome_page') }}">
-                            <i class="fas fa-home me-1"></i> Inicio
-                        </a>
-                    </li>
-                    {% endif %}
                 </ul>
 
                 <ul class="navbar-nav">
-                    {% if current_user %}
+                    {% if logged_in and current_user %}
+                    <!-- Usuario logueado: mostrar nombre y botón de cerrar sesión -->
                     <li class="nav-item">
                         <span class="nav-link text-success me-2">
-                            <i class="fas fa-user-circle me-1"></i> {{ current_user.nombre if current_user.nombre else 'Usuario' }}
+                            <i class="fas fa-user-circle me-1"></i> {{ current_user.nombre }}
                         </span>
                     </li>
                     <li class="nav-item">
-                        <form action="{{ url_for('logout_user') }}" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-danger btn-sm mt-1 mt-lg-0">
-                                <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
-                            </button>
-                        </form>
+                        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm mt-1 mt-lg-0">
+                            <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
+                        </a>
                     </li>
                     {% else %}
+                    <!-- Usuario no logueado: mostrar botones de login y registro -->
                     <li class="nav-item">
                         <a class="btn btn-outline-primary me-2 mt-1 mt-lg-0" href="{{ url_for('login_form') }}">
                             <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
@@ -187,7 +198,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Función para la animación de elementos al hacer scroll (fade-in)
         function animateOnScroll() {
             const elements = document.querySelectorAll('.fade-in');
             const observer = new IntersectionObserver((entries) => {
@@ -201,7 +211,6 @@
             elements.forEach(el => observer.observe(el));
         }
 
-        // Función para previsualizar imágenes subidas en formularios
         function previewImage(event, previewId) {
             const reader = new FileReader();
             reader.onload = function(){
@@ -215,13 +224,12 @@
             } else {
                 const output = document.getElementById(previewId);
                 output.src = '';
-                output.style.display = 'none.';
+                output.style.display = 'none';
             }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             animateOnScroll();
-            // Inicialización de tooltips de Bootstrap
             const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
             tooltips.forEach(tooltip => {
                 new bootstrap.Tooltip(tooltip);

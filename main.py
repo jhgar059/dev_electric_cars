@@ -1,4 +1,4 @@
-# main.py - VERSIÓN COMPLETA CON SISTEMA DE SESIÓN Y LOGOUT
+# main.py - VERSIÓN CORREGIDA CON SISTEMA DE SESIÓN FUNCIONAL
 
 from fastapi import FastAPI, HTTPException, Depends, Request, File, UploadFile, Form, status, Response, Cookie
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
@@ -29,7 +29,7 @@ import crud
 import crud_usuarios as user_crud
 from auth_utils import get_password_hash, verify_password
 
-# Configuración de Logging MÁS DETALLADO
+# Configuración de Logging
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -67,34 +67,36 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # --------------------- FUNCIÓN HELPER PARA VERIFICAR SESIÓN ---------------------
 
-def check_user_session(request: Request) -> dict:
+def get_current_user_from_cookie(request: Request, db: Session = Depends(get_db)):
     """
-    Verifica si el usuario tiene una sesión activa.
-    Retorna un diccionario con información de la sesión.
+    Obtiene el usuario actual desde la cookie de sesión.
+    Retorna el objeto usuario o None si no hay sesión activa.
     """
     user_cedula = request.cookies.get("user_session")
 
-    if user_cedula:
-        return {
-            "logged_in": True,
-            "user_cedula": user_cedula
-        }
-    else:
-        return {
-            "logged_in": False,
-            "user_cedula": None
-        }
+    if not user_cedula:
+        return None
+
+    try:
+        user = user_crud.get_user_by_cedula(db, user_cedula)
+        if user and user.activo:
+            return user
+        return None
+    except Exception as e:
+        logger.error(f"Error al obtener usuario desde cookie: {e}")
+        return None
 
 
 # --------------------- VISTAS HTML SIN AUTENTICACIÓN ---------------------
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def welcome_page(request: Request):
+async def welcome_page(request: Request, db: Session = Depends(get_db)):
     try:
-        session_info = check_user_session(request)
+        current_user = get_current_user_from_cookie(request, db)
         return templates.TemplateResponse("welcome.html", {
             "request": request,
-            **session_info
+            "current_user": current_user,
+            "logged_in": current_user is not None
         })
     except Exception as e:
         logger.error(f"Error en welcome_page: {e}", exc_info=True)
@@ -103,9 +105,9 @@ async def welcome_page(request: Request):
 
 @app.get("/index", response_class=HTMLResponse, include_in_schema=False)
 async def index_page(request: Request, db: Session = Depends(get_db)):
-    """Página de inicio con estadísticas - PÚBLICA"""
+    """Página de inicio con estadísticas"""
     try:
-        session_info = check_user_session(request)
+        current_user = get_current_user_from_cookie(request, db)
 
         total_autos = crud.get_autos_count(db)
         total_cargas = crud.get_cargas_count(db)
@@ -119,7 +121,8 @@ async def index_page(request: Request, db: Session = Depends(get_db)):
             "total_estaciones": total_estaciones,
             "avg_autonomia": avg_autonomia,
             "is_home_page": True,
-            **session_info
+            "current_user": current_user,
+            "logged_in": current_user is not None
         })
     except Exception as e:
         logger.error(f"Error en index_page: {e}", exc_info=True)
@@ -127,47 +130,52 @@ async def index_page(request: Request, db: Session = Depends(get_db)):
 
 
 @app.get("/project_objective", response_class=HTMLResponse, include_in_schema=False)
-async def project_objective_page(request: Request):
-    session_info = check_user_session(request)
+async def project_objective_page(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse("project_objective.html", {
         "request": request,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
 @app.get("/mockups_wireframes", response_class=HTMLResponse, include_in_schema=False)
-async def mockups_wireframes_page(request: Request):
-    session_info = check_user_session(request)
+async def mockups_wireframes_page(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse("mockups_wireframes.html", {
         "request": request,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
 @app.get("/endpoint_map", response_class=HTMLResponse, include_in_schema=False)
-async def endpoint_map_page(request: Request):
-    session_info = check_user_session(request)
+async def endpoint_map_page(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse("endpoint_map.html", {
         "request": request,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
 @app.get("/developer_info", response_class=HTMLResponse, include_in_schema=False)
-async def developer_info_page(request: Request):
-    session_info = check_user_session(request)
+async def developer_info_page(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse("developer_info.html", {
         "request": request,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
 @app.get("/planning_design", response_class=HTMLResponse, include_in_schema=False)
-async def planning_design_page(request: Request):
-    session_info = check_user_session(request)
+async def planning_design_page(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse("planning_design.html", {
         "request": request,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
@@ -209,7 +217,6 @@ async def register_user(
     try:
         logger.info(f"Intento de registro para: {correo}")
 
-        # Validaciones de existencia
         existing_user = user_crud.get_user_by_cedula(db, cedula)
         if existing_user:
             logger.warning(f"Cédula ya registrada: {cedula}")
@@ -220,10 +227,7 @@ async def register_user(
             logger.warning(f"Correo ya registrado: {correo}")
             raise HTTPException(status_code=400, detail="El correo ya está registrado.")
 
-        # Validar el modelo Pydantic
         new_user = UsuarioRegistro(**user_data)
-
-        # Crear usuario
         created_user = user_crud.create_user(db, new_user)
         logger.info(f"Usuario registrado exitosamente: {created_user.cedula}")
 
@@ -259,11 +263,10 @@ async def login_for_access_token(
         username: str = Form(...),
         password: str = Form(...)
 ):
-    """Endpoint para iniciar sesión - FORMULARIO HTML"""
+    """Endpoint para iniciar sesión"""
     try:
         logger.info(f"Intento de login para: {username}")
 
-        # Buscar usuario
         user = user_crud.get_user_by_cedula_or_correo(db, username)
 
         if not user:
@@ -277,7 +280,6 @@ async def login_for_access_token(
                 status_code=401
             )
 
-        # Verificar contraseña
         logger.debug(f"Verificando contraseña para usuario: {user.cedula}")
         password_valid = verify_password(password, user.hashed_password)
 
@@ -292,7 +294,6 @@ async def login_for_access_token(
                 status_code=401
             )
 
-        # Verificar usuario activo
         if not user.activo:
             logger.warning(f"Usuario inactivo intentó login: {username}")
             return templates.TemplateResponse(
@@ -304,19 +305,16 @@ async def login_for_access_token(
                 status_code=403
             )
 
-        # Login exitoso - Crear sesión con cookie
         logger.info(f"Login exitoso para: {user.cedula}")
 
-        # Crear respuesta de redirección
         response = RedirectResponse(url="/index", status_code=status.HTTP_302_FOUND)
 
-        # Establecer cookie de sesión (válida por 7 días)
         response.set_cookie(
             key="user_session",
             value=user.cedula,
-            max_age=7 * 24 * 60 * 60,  # 7 días en segundos
-            httponly=True,  # Seguridad: no accesible desde JavaScript
-            samesite="lax"  # Protección CSRF
+            max_age=7 * 24 * 60 * 60,
+            httponly=True,
+            samesite="lax"
         )
 
         return response
@@ -334,15 +332,16 @@ async def login_for_access_token(
 
 
 @app.get("/change_password", response_class=HTMLResponse, include_in_schema=False)
-async def change_password_form(request: Request):
-    session_info = check_user_session(request)
+async def change_password_form(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse(
         "change_password.html",
         {
             "request": request,
             "error_message": None,
             "form_data": {},
-            **session_info
+            "current_user": current_user,
+            "logged_in": current_user is not None
         }
     )
 
@@ -366,22 +365,18 @@ async def handle_change_password(
     try:
         logger.info(f"Intento de cambio de contraseña para: {identificador}")
 
-        # 1. Validar modelo Pydantic
         pass_change = CambioPassword(**form_data)
 
-        # 2. Buscar usuario
         user = user_crud.get_user_by_cedula_or_correo(db, identificador)
         if user is None:
             raise HTTPException(status_code=404, detail="Usuario no encontrado.")
 
-        # 3. Verificar contraseña anterior
         if user.hashed_password:
             if not password_anterior:
                 raise HTTPException(status_code=400, detail="Debes ingresar la contraseña anterior.")
             if not verify_password(password_anterior, user.hashed_password):
                 raise HTTPException(status_code=401, detail="Contraseña anterior incorrecta.")
 
-        # 4. Actualizar contraseña
         user_crud.update_user_password(db, user.id, pass_change.password_nueva)
         logger.info(f"Contraseña actualizada para: {identificador}")
 
@@ -411,86 +406,91 @@ async def logout():
     """Cerrar sesión - Elimina la cookie de sesión"""
     logger.info("Usuario cerrando sesión")
 
-    # Crear respuesta de redirección
     response = RedirectResponse(
         url="/login?success_message=Sesión%20cerrada%20exitosamente.",
         status_code=status.HTTP_302_FOUND
     )
 
-    # Eliminar la cookie de sesión
     response.delete_cookie(key="user_session")
 
     return response
 
 
-# --------------------- PÁGINAS PROTEGIDAS (SIN PROTECCIÓN POR AHORA) ---------------------
+# --------------------- PÁGINAS PROTEGIDAS ---------------------
 
 @app.get("/cars", response_class=HTMLResponse, include_in_schema=False)
-async def cars_page(request: Request):
-    session_info = check_user_session(request)
+async def cars_page(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse("cars.html", {
         "request": request,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
 @app.get("/charges", response_class=HTMLResponse, include_in_schema=False)
-async def charges_page(request: Request):
-    session_info = check_user_session(request)
+async def charges_page(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse("charges.html", {
         "request": request,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
 @app.get("/stations", response_class=HTMLResponse, include_in_schema=False)
-async def stations_page(request: Request):
-    session_info = check_user_session(request)
+async def stations_page(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse("stations.html", {
         "request": request,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
 @app.get("/statistics_page", response_class=HTMLResponse, include_in_schema=False)
-async def statistics_page(request: Request):
-    session_info = check_user_session(request)
+async def statistics_page(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse("statistics_page.html", {
         "request": request,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
 @app.get("/deleted_cars", response_class=HTMLResponse, include_in_schema=False)
 async def deleted_cars_page(request: Request, db: Session = Depends(get_db)):
-    session_info = check_user_session(request)
+    current_user = get_current_user_from_cookie(request, db)
     autos_eliminados = crud.get_autos_eliminados(db)
     return templates.TemplateResponse("deleted_cars.html", {
         "request": request,
         "autos_eliminados": autos_eliminados,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
 @app.get("/deleted_charges", response_class=HTMLResponse, include_in_schema=False)
 async def deleted_charges_page(request: Request, db: Session = Depends(get_db)):
-    session_info = check_user_session(request)
+    current_user = get_current_user_from_cookie(request, db)
     cargas_eliminadas = crud.get_cargas_eliminadas(db)
     return templates.TemplateResponse("deleted_charges.html", {
         "request": request,
         "cargas_eliminadas": cargas_eliminadas,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
 @app.get("/deleted_stations", response_class=HTMLResponse, include_in_schema=False)
 async def deleted_stations_page(request: Request, db: Session = Depends(get_db)):
-    session_info = check_user_session(request)
+    current_user = get_current_user_from_cookie(request, db)
     estaciones_eliminadas = crud.get_estaciones_eliminadas(db)
     return templates.TemplateResponse("deleted_stations.html", {
         "request": request,
         "estaciones_eliminadas": estaciones_eliminadas,
-        **session_info
+        "current_user": current_user,
+        "logged_in": current_user is not None
     })
 
 
