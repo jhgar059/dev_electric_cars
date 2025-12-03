@@ -21,7 +21,7 @@ if not SQLALCHEMY_DATABASE_URL:
 
 # Render a veces usa 'postgres://' en lugar de 'postgresql://'
 if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
-    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
     logger.info("URL corregida a postgresql://")
 
 # --- 2. CONFIGURACIÓN DEL ENGINE (EL PUNTO DE CRASH MÁS COMÚN) ---
