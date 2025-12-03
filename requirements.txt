@@ -12,3 +12,20 @@ loguru==0.7.2
 # Nuevo: para hashing de contraseñas
 Werkzeug==3.0.1
 python-jose[cryptography]==3.3.0
+# Dependencias para pruebas automatizadas
+
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.2
+faker==20.1.0
+pytest-mock==3.12.0
+python-dotenv==1.0.0
+
+# Para FastAPI
+fastapi[all]==0.111.0
+sqlalchemy==2.0.30
+psycopg2-binary==2.9.9
+
+# Para generación de reportes
+pytest-html==4.1.1
