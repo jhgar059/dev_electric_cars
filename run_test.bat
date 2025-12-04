@@ -7,13 +7,37 @@ echo ELECTRIC CARS DATABASE - TEST SUITE
 echo ========================================
 echo.
 
-REM Verificar si pytest está instalado
-python -m pytest --version >nul 2>&1
+REM Verificar dependencias críticas
+echo Verificando dependencias...
+python -c "import sqlalchemy" 2>nul
+if errorlevel 1 (
+    echo [ERROR] SQLAlchemy no esta instalado
+    echo.
+    echo Por favor ejecuta primero:
+    echo   pip install -r requirements.txt
+    echo.
+    echo O instala las dependencias minimas:
+    echo   pip install sqlalchemy pytest pytest-cov httpx
+    echo   pip install fastapi uvicorn jinja2 python-dotenv
+    echo.
+    pause
+    exit /b 1
+)
+
+python -c "import pytest" 2>nul
 if errorlevel 1 (
     echo [ERROR] pytest no esta instalado
     echo Instalando dependencias de testing...
-    pip install pytest pytest-cov pytest-html httpx
+    pip install pytest pytest-cov httpx
     echo.
+)
+
+REM Verificar que existe el directorio test
+if not exist "test" (
+    echo [ERROR] No se encuentra el directorio 'test'
+    echo Asegurate de estar en el directorio raiz del proyecto
+    pause
+    exit /b 1
 )
 
 REM Crear directorios necesarios
@@ -31,10 +55,17 @@ if "%cmd%"=="fast" goto run_fast
 if "%cmd%"=="coverage" goto show_coverage
 if "%cmd%"=="stats" goto show_stats
 if "%cmd%"=="clean" goto clean_files
+if "%cmd%"=="check" goto check_deps
 if "%cmd%"=="help" goto show_help
 
 echo [ERROR] Comando no reconocido: %cmd%
 goto show_help
+
+:check_deps
+echo Verificando todas las dependencias...
+echo.
+python check_dependencies.py
+goto end
 
 :run_all
 echo Ejecutando todas las pruebas...
@@ -110,6 +141,7 @@ echo   crud      - Ejecutar solo pruebas CRUD
 echo   fast      - Ejecutar solo pruebas rapidas
 echo   coverage  - Ejecutar con reporte de cobertura HTML
 echo   stats     - Mostrar estadisticas de pruebas
+echo   check     - Verificar dependencias instaladas
 echo   clean     - Limpiar archivos de prueba
 echo   help      - Mostrar esta ayuda
 echo.
@@ -117,6 +149,7 @@ echo Ejemplos:
 echo   run_tests.bat all
 echo   run_tests.bat auth
 echo   run_tests.bat coverage
+echo   run_tests.bat check
 goto end
 
 :end

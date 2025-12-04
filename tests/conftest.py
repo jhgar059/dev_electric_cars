@@ -12,9 +12,32 @@ import os
 # Agregar el directorio raíz al path para importar módulos
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker
-from database import Base
+# Verificar dependencias críticas
+try:
+    from sqlalchemy import create_engine, event
+    from sqlalchemy.orm import sessionmaker
+except ImportError as e:
+    print("\n" + "="*70)
+    print("❌ ERROR: Falta instalar dependencias necesarias")
+    print("="*70)
+    print("\nPor favor ejecuta:")
+    print("  pip install sqlalchemy pytest pytest-cov httpx")
+    print("\nO instala todas las dependencias con:")
+    print("  pip install -r requirements-dev-windows.txt")
+    print("\n" + "="*70 + "\n")
+    raise
+
+try:
+    from database import Base
+except ImportError as e:
+    print("\n" + "="*70)
+    print("❌ ERROR: No se puede importar database.py")
+    print("="*70)
+    print("\nAsegúrate de estar en el directorio correcto del proyecto")
+    print("El archivo database.py debe existir en el directorio raíz")
+    print("\n" + "="*70 + "\n")
+    raise
+
 import logging
 
 # Configurar logging para pruebas
@@ -142,19 +165,19 @@ def pytest_configure(config):
     """
     Hook que se ejecuta antes de iniciar las pruebas.
     """
-    print("\n" + "=" * 70)
+    print("\n" + "="*70)
     print("INICIANDO SUITE DE PRUEBAS - ELECTRIC CARS DATABASE")
-    print("=" * 70 + "\n")
+    print("="*70 + "\n")
 
 
 def pytest_sessionfinish(session, exitstatus):
     """
     Hook que se ejecuta al finalizar todas las pruebas.
     """
-    print("\n" + "=" * 70)
+    print("\n" + "="*70)
     print("SUITE DE PRUEBAS COMPLETADA")
     print(f"Estado de salida: {exitstatus}")
-    print("=" * 70 + "\n")
+    print("="*70 + "\n")
 
 
 def pytest_collection_modifyitems(config, items):
