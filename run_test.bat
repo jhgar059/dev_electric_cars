@@ -110,7 +110,7 @@ echo   crud      - Ejecutar solo pruebas CRUD
 echo   fast      - Ejecutar solo pruebas rapidas
 echo   coverage  - Ejecutar con reporte de cobertura HTML
 echo   stats     - Mostrar estadisticas de pruebas
-echo   clean     - Limpiar archivos de prueba
+echo   clean     - Limpiar archivos de prueba.
 echo   help      - Mostrar esta ayuda
 echo.
 echo Ejemplos:
