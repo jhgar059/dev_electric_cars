@@ -9,12 +9,39 @@ import pytest
 import sys
 import os
 
+# ⚠️ CRÍTICO: Establecer variable de entorno ANTES de importar módulos
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+
 # Agregar el directorio raíz al path para importar módulos
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker
-from database import Base
+# Verificar dependencias críticas
+try:
+    from sqlalchemy import create_engine, event
+    from sqlalchemy.orm import sessionmaker
+except ImportError as e:
+    print("\n" + "=" * 70)
+    print("❌ ERROR: Falta instalar dependencias necesarias")
+    print("=" * 70)
+    print("\nPor favor ejecuta:")
+    print("  pip install sqlalchemy pytest pytest-cov httpx")
+    print("\nO instala todas las dependencias con:")
+    print("  pip install -r requirements.txt")
+    print("\n" + "=" * 70 + "\n")
+    raise
+
+try:
+    from database import Base
+    from fastapi.testclient import TestClient
+except ImportError as e:
+    print("\n" + "=" * 70)
+    print("❌ ERROR: No se puede importar módulos del proyecto")
+    print("=" * 70)
+    print("\nAsegúrate de estar en el directorio correcto del proyecto")
+    print("Error específico:", str(e))
+    print("\n" + "=" * 70 + "\n")
+    raise
+
 import logging
 
 # Configurar logging para pruebas
@@ -23,7 +50,9 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
-# Base de datos en memoria para pruebas
+# ==================== CONFIGURACIÓN DE BASE DE DATOS ====================
+
+# Base de datos en memoria para pruebas (más rápido y limpio)
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
 
@@ -77,12 +106,13 @@ def db_session(engine, tables):
     connection.close()
 
 
+# ==================== FIXTURES DE FASTAPI ====================
+
 @pytest.fixture
 def client(db_session):
     """
     Crea un TestClient de FastAPI con la sesión de BD mockeada.
     """
-    from fastapi.testclient import TestClient
     from main import app
     from database import get_db
 
@@ -99,6 +129,8 @@ def client(db_session):
 
     app.dependency_overrides.clear()
 
+
+# ==================== FIXTURES DE DATOS DE USUARIO ====================
 
 @pytest.fixture
 def test_user_data():
@@ -136,45 +168,7 @@ def authenticated_user(client, db_session, test_user_data):
     return login_response.cookies
 
 
-# Hooks de pytest para personalizar el comportamiento
-
-def pytest_configure(config):
-    """
-    Hook que se ejecuta antes de iniciar las pruebas.
-    """
-    print("\n" + "=" * 70)
-    print("INICIANDO SUITE DE PRUEBAS - ELECTRIC CARS DATABASE")
-    print("=" * 70 + "\n")
-
-
-def pytest_sessionfinish(session, exitstatus):
-    """
-    Hook que se ejecuta al finalizar todas las pruebas.
-    """
-    print("\n" + "=" * 70)
-    print("SUITE DE PRUEBAS COMPLETADA")
-    print(f"Estado de salida: {exitstatus}")
-    print("=" * 70 + "\n")
-
-
-def pytest_collection_modifyitems(config, items):
-    """
-    Hook para modificar los items de prueba después de la recolección.
-    Útil para agregar marcadores automáticamente.
-    """
-    for item in items:
-        # Marcar automáticamente pruebas lentas
-        if "integration" in item.nodeid:
-            item.add_marker(pytest.mark.slow)
-
-        # Agregar marcador según el módulo
-        if "test_auth" in item.nodeid:
-            item.add_marker(pytest.mark.auth)
-        elif "test_crud" in item.nodeid:
-            item.add_marker(pytest.mark.crud)
-
-
-# Fixtures adicionales para datos de prueba
+# ==================== FIXTURES DE DATOS DE PRUEBA ====================
 
 @pytest.fixture
 def sample_auto():
@@ -220,3 +214,73 @@ def sample_estacion():
         "operador": "Tesla",
         "url_imagen": "/static/images/test_estacion.jpg"
     }
+
+
+# ==================== HOOKS DE PYTEST ====================
+
+def pytest_configure(config):
+    """
+    Hook que se ejecuta antes de iniciar las pruebas.
+    """
+    print("\n" + "=" * 70)
+    print("INICIANDO SUITE DE PRUEBAS - ELECTRIC CARS DATABASE")
+    print("=" * 70)
+    print(f"Base de datos de prueba: {TEST_DATABASE_URL}")
+    print("=" * 70 + "\n")
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """
+    Hook que se ejecuta al finalizar todas las pruebas.
+    """
+    print("\n" + "=" * 70)
+    print("SUITE DE PRUEBAS COMPLETADA")
+    print(f"Estado de salida: {exitstatus}")
+    if exitstatus == 0:
+        print("Todas las pruebas pasaron exitosamente")
+    else:
+        print("Algunas pruebas fallaron")
+    print("=" * 70 + "\n")
+
+
+def pytest_collection_modifyitems(config, items):
+    """
+    Hook para modificar los items de prueba después de la recolección.
+    Útil para agregar marcadores automáticamente.
+    """
+    for item in items:
+        # Marcar automáticamente pruebas lentas
+        if "integration" in item.nodeid:
+            item.add_marker(pytest.mark.slow)
+
+        # Agregar marcador según el módulo
+        if "test_auth" in item.nodeid:
+            item.add_marker(pytest.mark.auth)
+        elif "test_crud" in item.nodeid:
+            item.add_marker(pytest.mark.crud)
+
+
+# ==================== UTILIDADES ====================
+
+@pytest.fixture
+def mock_user_db(db_session):
+    """
+    Fixture que crea un usuario directamente en la BD para pruebas que lo necesiten.
+    """
+    from models_sql import UsuarioSQL
+    from auth_utils import get_password_hash
+
+    user = UsuarioSQL(
+        nombre="Test User",
+        edad=25,
+        correo="testdb@example.com",
+        cedula="9876543210",
+        celular="3009876543",
+        hashed_password=get_password_hash("TestPassword123"),
+        activo=True
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    return user
